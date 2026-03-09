@@ -456,7 +456,6 @@ import uuid
 from fastapi.responses import FileResponse
 from .auth import get_current_user
 from PIL import Image
-from fastapi.staticfiles import StaticFiles
 
 import io
 
@@ -467,11 +466,9 @@ router = APIRouter(
 
 # Ensure upload directory exists
 STATIC_DIR = "static"
+UPLOAD_DIR = f"{STATIC_DIR}/uploads"
 os.makedirs(STATIC_DIR, exist_ok=True)
-os.makedirs(f"{STATIC_DIR}/uploads", exist_ok=True)
-
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Helper function to validate and save uploaded image
 async def save_uploaded_file(upload_file: UploadFile, target_size=(400, 600)) -> str:

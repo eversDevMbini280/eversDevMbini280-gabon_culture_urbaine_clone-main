@@ -67,7 +67,7 @@ const authFetch = async (url, options = {}) => {
 };
 
 const AdminDashboard = () => {
-  const apiUrl = "https://gabon-culture-urbaine-1.onrender.com";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState('videos');
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,27 +92,27 @@ const AdminDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'videos':
-        return <Videos searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
+        return <Videos apiUrl={apiUrl} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
       case 'images':
-        return <Images />;
+        return <Images apiUrl={apiUrl} />;
       case 'articles':
-        return <Articles />;
+        return <Articles apiUrl={apiUrl} />;
       case 'articles2':
-        return <Articles2 />;
+        return <Articles2 apiUrl={apiUrl} />;
       case 'articles3':
-        return <Articles3 />;
+        return <Articles3 apiUrl={apiUrl} />;
       case 'articles4': 
-        return <Articles4 />;
+        return <Articles4 apiUrl={apiUrl} />;
       case 'articles5': 
-        return <Articles5 />;
+        return <Articles5 apiUrl={apiUrl} />;
       case 'articles6': 
-        return <Articles6 />;
+        return <Articles6 apiUrl={apiUrl} />;
       case 'articlesactual': 
-        return <Articlesactual />;
+        return <Articlesactual apiUrl={apiUrl} />;
       case 'users':
-        return <User />;
+        return <User apiUrl={apiUrl} />;
       case 'apropos':
-        return <Apropos />;
+        return <Apropos apiUrl={apiUrl} />;
       
       default:
         return <div>Select a tab from the sidebar</div>;

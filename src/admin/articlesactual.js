@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, RefreshCw, X, Check, AlertTriangle } from 'lucide-react';
 
-const Actualite = ({ apiUrl = "https://gabon-culture-urbaine-1.onrender.com" }) => {
+const Actualite = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000" }) => {
   const [actualites, setActualites] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

@@ -16,8 +16,7 @@ import { useRouter } from 'next/navigation';
 // Base64 fallback image (1x1 transparent pixel)
 const FALLBACK_IMAGE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
-const Images = () => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://gabon-culture-urbaine-1.onrender.com';
+const Images = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }) => {
   const router = useRouter();
   const [advertisements, setAdvertisements] = useState([]);
   const [isLoading, setIsLoading] = useState(false);

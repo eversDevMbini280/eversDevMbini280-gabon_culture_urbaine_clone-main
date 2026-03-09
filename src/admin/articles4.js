@@ -710,7 +710,7 @@ import { Editor } from '@tinymce/tinymce-react';
 // Base64 fallback image (1x1 transparent pixel)
 const FALLBACK_IMAGE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
-const Articles4 = ({ apiUrl = 'https://gabon-culture-urbaine-1.onrender.com' }) => {
+const Articles4 = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }) => {
   const [scienceArticles, setScienceArticles] = useState([]);
   const [categories, setCategories] = useState([]);
   const [sections, setSections] = useState([]);
@@ -739,7 +739,7 @@ const Articles4 = ({ apiUrl = 'https://gabon-culture-urbaine-1.onrender.com' }) 
   const [imagePreview, setImagePreview] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
 
-  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
   const isAdmin = userInfo.role === 'admin';
 
   useEffect(() => {
@@ -762,23 +762,16 @@ const Articles4 = ({ apiUrl = 'https://gabon-culture-urbaine-1.onrender.com' }) 
         fetch(`${apiUrl}/api/sections/`, { cache: 'no-store', headers }),
       ]);
 
-      const responses = [
-        { res: articlesResponse, name: 'Science Articles' },
-        { res: categoriesResponse, name: 'Categories' },
-        { res: sectionsResponse, name: 'Sections' },
-      ];
-
-      for (const { res, name } of responses) {
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(`Échec de la récupération des ${name}: ${errorData.detail || res.statusText}`);
-        }
-      }
+      const safeJson = async (response) => {
+        if (!response.ok) return [];
+        const data = await response.json().catch(() => []);
+        return Array.isArray(data) ? data : [];
+      };
 
       const [articlesData, categoriesData, sectionsData] = await Promise.all([
-        articlesResponse.json(),
-        categoriesResponse.json(),
-        sectionsResponse.json(),
+        safeJson(articlesResponse),
+        safeJson(categoriesResponse),
+        safeJson(sectionsResponse),
       ]);
 
       setScienceArticles(
@@ -792,8 +785,8 @@ const Articles4 = ({ apiUrl = 'https://gabon-culture-urbaine-1.onrender.com' }) 
             }))
           : []
       );
-      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-      setSections(Array.isArray(sectionsData) ? sectionsData : []);
+      setCategories(categoriesData);
+      setSections(sectionsData);
     } catch (error) {
       setErrorMessage(error.message || 'Échec de la récupération des données.');
     } finally {
@@ -818,7 +811,7 @@ const Articles4 = ({ apiUrl = 'https://gabon-culture-urbaine-1.onrender.com' }) 
       }
       const data = await response.json();
       localStorage.setItem('token', data.access_token);
-      localStorage.setItem('userInfo', JSON.stringify(data.user_info));
+      localStorage.setItem('user_info', JSON.stringify(data.user_info));
       setIsAuthenticated(true);
       fetchData(data.access_token);
     } catch (error) {
@@ -1086,6 +1079,14 @@ const Articles4 = ({ apiUrl = 'https://gabon-culture-urbaine-1.onrender.com' }) 
     setErrorMessage('');
   };
 
+  const handleAddArticle = () => {
+    resetForm();
+    requestAnimationFrame(() => {
+      const formEl = document.getElementById('science-article-form');
+      formEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -1144,7 +1145,7 @@ const Articles4 = ({ apiUrl = 'https://gabon-culture-urbaine-1.onrender.com' }) 
           <p className="text-sm text-gray-500">Gérez les articles scientifiques et leurs sections</p>
         </div>
         <button
-          onClick={resetForm}
+          onClick={handleAddArticle}
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           <Plus className="w-5 h-5 mr-2" />
@@ -1239,7 +1240,7 @@ const Articles4 = ({ apiUrl = 'https://gabon-culture-urbaine-1.onrender.com' }) 
           </div>
         )}
       </div>
-      <div className="bg-white rounded-lg shadow p-6 max-h-screen overflow-y-auto">
+      <div id="science-article-form" className="bg-white rounded-lg shadow p-6 max-h-screen overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium text-gray-800">
             {isEditing ? 'Modifier' : 'Ajouter'} un Article Scientifique
@@ -1381,17 +1382,21 @@ const Articles4 = ({ apiUrl = 'https://gabon-culture-urbaine-1.onrender.com' }) 
                   height: 400,
                   menubar: true,
                   plugins: [
-                    'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
-                    'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
+                    'anchor',
+                    'autolink',
+                    'charmap',
+                    'codesample',
+                    'emoticons',
+                    'image',
+                    'link',
+                    'lists',
+                    'media',
+                    'searchreplace',
+                    'table',
+                    'visualblocks',
+                    'wordcount'
                   ],
-                  toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-                  tinycomments_mode: 'embedded',
-                  tinycomments_author: 'Admin',
-                  mergetags_list: [
-                    { value: 'First.Name', title: 'First Name' },
-                    { value: 'Email', title: 'Email' },
-                  ],
-                  ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('AI Assistant not implemented')),
+                  toolbar: 'undo redo | blocks | bold italic underline strikethrough | link image media table | numlist bullist indent outdent | emoticons charmap | removeformat',
                   file_picker_callback: filePickerCallback,
                   file_picker_types: 'image media',
                   content_style: `

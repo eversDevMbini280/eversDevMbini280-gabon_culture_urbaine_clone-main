@@ -17,7 +17,7 @@ import {
   StarOff
 } from 'lucide-react';
 
-const Articles2 = ({ apiUrl = 'https://gabon-culture-urbaine-1.onrender.com' }) => {
+const Articles2 = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }) => {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

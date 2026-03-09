@@ -28,22 +28,25 @@
 #         db.close()
 
 
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from urllib.parse import quote_plus
 
-# Render PostgreSQL connection (URL encode password if needed)
-password = "fKkpz9P2OV6elTjfcZmhwTQuImo3Vj6E"
-encoded_password = quote_plus(password)  # Handles special chars in password
+# Load environment variables from api/.env
+env_path = Path(__file__).resolve().parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
-DATABASE_URL = f"postgresql://gabondb_user:{encoded_password}@dpg-d0dn3qjuibrs73cvfj5g-a.frankfurt-postgres.render.com:5432/gabondb"
+# Supports DATABASE_URL and fallback to DATABAS_URL typo if present
+DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("DATABAS_URL")
 
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    connect_args={"sslmode": "require"}  # Render requires SSL
-)
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is not set in environment variables.")
+
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

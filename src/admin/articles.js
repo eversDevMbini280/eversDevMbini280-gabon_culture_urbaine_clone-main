@@ -4,9 +4,9 @@ import { FileText, Plus, Edit, Trash2, RefreshCw, Check, X, Clock, Send } from '
 import { Editor } from '@tinymce/tinymce-react';
 
 // API base URL from environment variable
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://gabon-culture-urbaine-1.onrender.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-const Articles = () => {
+const Articles = ({ apiUrl = API_BASE_URL }) => {
   // State initialization
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
@@ -58,8 +58,8 @@ const Articles = () => {
 
   // Check authentication and fetch initial data
   useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
+    const accessToken = localStorage.getItem('token');
+    const refreshToken = localStorage.getItem('refresh_token');
     if (accessToken && refreshToken) {
       setIsAuthenticated(true);
       fetchData();
@@ -78,7 +78,7 @@ const Articles = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -88,9 +88,9 @@ const Articles = () => {
       });
       if (!response.ok) throw new Error('Login failed');
       const data = await response.json();
-      localStorage.setItem('accessToken', data.access_token);
-      localStorage.setItem('refreshToken', data.refresh_token);
-      localStorage.setItem('userInfo', JSON.stringify(data.user_info));
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+      localStorage.setItem('user_info', JSON.stringify(data.user_info));
       setIsAuthenticated(true);
       fetchData();
     } catch (error) {
@@ -101,18 +101,18 @@ const Articles = () => {
 
   // Refresh token handler
   const refreshToken = async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) return null;
+    const storedRefreshToken = localStorage.getItem('refresh_token');
+    if (!storedRefreshToken) return null;
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      const response = await fetch(`${apiUrl}/api/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: refreshToken }),
+        body: JSON.stringify({ refresh_token: storedRefreshToken }),
       });
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('accessToken', data.access_token);
-        localStorage.setItem('refreshToken', data.refresh_token);
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('refresh_token', data.refresh_token);
         return data.access_token;
       }
       return null;
@@ -126,7 +126,7 @@ const Articles = () => {
   const fetchData = async () => {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
-      let token = localStorage.getItem('accessToken');
+      let token = localStorage.getItem('token');
       if (!token) {
         token = await refreshToken();
         if (!token) {
@@ -137,14 +137,14 @@ const Articles = () => {
         }
       }
       const headers = { Authorization: `Bearer ${token}` };
-      const [articlesRes, categoriesRes, sectionsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/articles/?status=published`, { headers }).catch((err) => ({
+      let [articlesRes, categoriesRes, sectionsRes] = await Promise.all([
+        fetch(`${apiUrl}/api/articles/?status=published`, { headers }).catch((err) => ({
           ok: false,
           status: 500,
           statusText: `Network error: ${err.message}`,
         })),
-        fetch(`${API_BASE_URL}/api/categories/`, { headers }).catch(() => ({ ok: false })),
-        fetch(`${API_BASE_URL}/api/sections/`, { headers }).catch(() => ({ ok: false })),
+        fetch(`${apiUrl}/api/categories/`, { headers }).catch(() => ({ ok: false })),
+        fetch(`${apiUrl}/api/sections/`, { headers }).catch(() => ({ ok: false })),
       ]);
 
       if (!articlesRes.ok) {
@@ -152,7 +152,7 @@ const Articles = () => {
           const newToken = await refreshToken();
           if (newToken) {
             headers.Authorization = `Bearer ${newToken}`;
-            const retryRes = await fetch(`${API_BASE_URL}/api/articles/?status=published`, { headers });
+            const retryRes = await fetch(`${apiUrl}/api/articles/?status=published`, { headers });
             if (retryRes.ok) articlesRes = retryRes;
           }
         }
@@ -311,7 +311,7 @@ const Articles = () => {
     if (!imageUrl) return null;
     return imageUrl.startsWith('http') || imageUrl.startsWith('//')
       ? imageUrl
-      : `${API_BASE_URL}${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
+      : `${apiUrl}${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
   };
 
   // TinyMCE file picker callback
@@ -359,8 +359,8 @@ const Articles = () => {
       if (formData.image) formDataToSend.append('image', formData.image);
       if (formData.video) formDataToSend.append('video', formData.video);
 
-      let token = localStorage.getItem('accessToken');
-      const url = currentArticle ? `${API_BASE_URL}/api/articles/${currentArticle.id}` : `${API_BASE_URL}/api/articles/`;
+      let token = localStorage.getItem('token');
+      const url = currentArticle ? `${apiUrl}/api/articles/${currentArticle.id}` : `${apiUrl}/api/articles/`;
       const method = currentArticle ? 'PUT' : 'POST';
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -466,10 +466,10 @@ const Articles = () => {
     if (!confirm('Are you sure you want to publish this article?')) return;
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
-      let token = localStorage.getItem('accessToken');
+      let token = localStorage.getItem('token');
       const formDataToSend = new FormData();
       formDataToSend.append('status', 'published');
-      let response = await fetch(`${API_BASE_URL}/api/articles/${articleId}`, {
+      let response = await fetch(`${apiUrl}/api/articles/${articleId}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: formDataToSend,
@@ -479,7 +479,7 @@ const Articles = () => {
         if (response.status === 401) {
           token = await refreshToken();
           if (token) {
-            response = await fetch(`${API_BASE_URL}/api/articles/${articleId}`, {
+            response = await fetch(`${apiUrl}/api/articles/${articleId}`, {
               method: 'PUT',
               headers: { Authorization: `Bearer ${token}` },
               body: formDataToSend,
@@ -520,8 +520,8 @@ const Articles = () => {
     if (!confirm('Are you sure you want to delete this article?')) return;
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
-      let token = localStorage.getItem('accessToken');
-      let response = await fetch(`${API_BASE_URL}/api/articles/${id}`, {
+      let token = localStorage.getItem('token');
+      let response = await fetch(`${apiUrl}/api/articles/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -530,7 +530,7 @@ const Articles = () => {
         if (response.status === 401) {
           token = await refreshToken();
           if (token) {
-            response = await fetch(`${API_BASE_URL}/api/articles/${id}`, {
+            response = await fetch(`${apiUrl}/api/articles/${id}`, {
               method: 'DELETE',
               headers: { Authorization: `Bearer ${token}` },
             });
@@ -695,7 +695,7 @@ const Articles = () => {
     );
   };
 
-  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
   const isAdmin = userInfo.role === 'admin';
 
   // Render login form if not authenticated
@@ -803,7 +803,7 @@ const Articles = () => {
                 <p className="text-red-700 dark:text-red-300">
                   {state.error}. Please check:
                   <ul className="list-disc pl-5 mt-1">
-                    <li>API server is running at {API_BASE_URL}</li>
+                    <li>API server is running at {apiUrl}</li>
                     <li>API endpoints: /api/articles/, /api/categories/, /api/sections/</li>
                     <li>Check browser console for details</li>
                     <li>Ensure valid login credentials</li>
@@ -920,7 +920,7 @@ const Articles = () => {
                 <label className="absolute -top-6 left-4 text-sm text-gray-500 dark:text-gray-400">Section</label>
               </div>
               <div className="relative">
-                <select annu-select
+                <select
                   name="status"
                   value={state.formData.status}
                   onChange={handleChange}

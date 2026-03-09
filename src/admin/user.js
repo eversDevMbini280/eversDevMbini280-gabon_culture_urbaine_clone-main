@@ -9,7 +9,7 @@ const sanitizeInput = (input) => {
   return input.replace(/[<>]/g, '');
 };
 
-const User = ({ apiUrl = "https://gabon-culture-urbaine-1.onrender.com", searchQuery }) => {
+const User = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000", searchQuery }) => {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);

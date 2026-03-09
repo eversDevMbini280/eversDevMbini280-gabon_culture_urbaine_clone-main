@@ -1537,6 +1537,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form, Query
 from fastapi.responses import Response
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 import os
@@ -1551,6 +1552,7 @@ import subprocess
 from tempfile import NamedTemporaryFile
 
 import models, schemas, database
+from database import get_db
 from . import auth  
 
 logging.basicConfig(level=logging.INFO)

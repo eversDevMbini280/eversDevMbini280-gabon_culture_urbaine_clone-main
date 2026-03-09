@@ -104,6 +104,15 @@ from routers.auth import router as auth_router
 
 app = FastAPI(title="Gabon Culture Urbaine API")
 
+LOCAL_CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -115,21 +124,6 @@ logger = logging.getLogger(__name__)
 # Add middleware for last activity tracking
 @app.middleware("http")
 async def update_last_activity(request: Request, call_next):
-    # Handle CORS preflight requests first
-    if request.method == "OPTIONS":
-        # For OPTIONS requests, return a response immediately with CORS headers
-        return JSONResponse(
-            content={},
-            status_code=200,
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Max-Age": "86400",
-            }
-        )
-    
-    # For non-OPTIONS requests, proceed with normal flow
     response = await call_next(request)
     
     try:
@@ -158,23 +152,18 @@ async def update_last_activity(request: Request, call_next):
     except AttributeError as e:
         logger.warning(f"Request state error: {str(e)}")
     
-    # Ensure CORS headers are present for all responses
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    
     return response
 
-# CORS configuration with expanded origins and settings
-# This middleware is applied after our custom middleware
+# CORS configuration for local frontend <-> local backend communication.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for now
-    allow_credentials=False,  # Set to False when using wildcard "*" origin
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_origins=LOCAL_CORS_ORIGINS,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Range", "Content-Length", "X-Process-Time", "Authorization"],
-    max_age=86400  # Cache preflight requests for 24 hours
+    max_age=86400
 )
 
 # Ensure upload directories exist
@@ -229,25 +218,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": detail}
     )
     
-    # Always add CORS headers to error responses
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    
     return response
-
-# Special OPTIONS handler for all routes
-@app.options("/{full_path:path}")
-async def options_handler(request: Request, full_path: str):
-    return JSONResponse(
-        content={},
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
-            "Access-Control-Allow-Headers": "*",
-            "Access-Control-Max-Age": "86400",
-        }
-    )
 
 if __name__ == "__main__":
     import uvicorn

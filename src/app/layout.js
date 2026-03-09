@@ -20,6 +20,7 @@
 
 import { Inter } from 'next/font/google';
 import './globals.css';
+import FetchFallbackGuard from '@/components/FetchFallbackGuard';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -36,7 +37,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="fr">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <FetchFallbackGuard />
+        {children}
+      </body>
     </html>
   );
 }

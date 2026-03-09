@@ -16,7 +16,7 @@ import {
   Save
 } from 'lucide-react';
 
-const Videos = ({ apiUrl = "https://gabon-culture-urbaine-1.onrender.com" }) => {
+const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000" }) => {
   const [videos, setVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1245,4 +1245,3 @@ const Videos = ({ apiUrl = "https://gabon-culture-urbaine-1.onrender.com" }) => 
 };
 
 export default Videos;
-

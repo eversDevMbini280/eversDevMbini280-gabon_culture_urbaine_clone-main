@@ -1274,8 +1274,7 @@ class AdvertisementDetailResponse(AdvertisementResponse):
 class UpcomingProgramBase(BaseModel):
     title: str
 
-class UpcomingProgramCreate(Upcomin
-gProgramBase):
+class UpcomingProgramCreate(UpcomingProgramBase):
     pass
 
 class UpcomingProgramUpdate(BaseModel):

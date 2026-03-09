@@ -19,6 +19,7 @@ const HomePage = () => {
     cinema: [],
     story: [],
     mostread: [],
+    latestPublished: [],
     latestNews: [],
     sections: [],
     directTVVideo: null,
@@ -103,6 +104,7 @@ const HomePage = () => {
         const [
           alauneData,
           buzzData,
+          latestPublishedData,
           latestNewsData,
           afroTchamData,
           rapData,
@@ -115,6 +117,7 @@ const HomePage = () => {
         ] = await Promise.all([
           fetchWithErrorHandling(`${apiUrl}/api/articles/alaune?status=published`, 'alaune articles'),
           fetchWithErrorHandling(`${apiUrl}/api/articles/?section_id=2&status=published`, 'buzz articles'),
+          fetchWithErrorHandling(`${apiUrl}/api/articles/?status=published&limit=100`, 'latest published articles'),
           fetchWithErrorHandling(`${apiUrl}/api/actualitehome/?status=published`, 'latest news'), // Updated URL
           fetchWithErrorHandling(`${apiUrl}/api/articles/afrotcham?status=published`, 'AfroTcham articles'),
           fetchWithErrorHandling(`${apiUrl}/api/articles/rap?status=published`, 'Rap articles'),
@@ -190,6 +193,15 @@ const HomePage = () => {
           isAlaune = false,
           isActualite = false // Flag for actualitehome
         ) => {
+          const getSummary = (rawContent, rawDescription) => {
+            if (rawDescription && rawDescription.trim()) {
+              return rawDescription.trim();
+            }
+            const plain = (rawContent || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            if (!plain) return 'Aucun résumé disponible';
+            return plain.length > 120 ? `${plain.slice(0, 120)}...` : plain;
+          };
+
           return data.map((item) => {
             let imageUrl;
             if (isActualite) {
@@ -207,7 +219,7 @@ const HomePage = () => {
             return {
               id: item.id,
               title: item.title,
-              description: item.description || 'No description available', // Add description
+              description: getSummary(item.content, item.description),
               image: imageUrl,
               category: isActualite ? 'Actualité' : (item.category?.name || 'Général'), // Default category for actualite
               section: isActualite ? 'Latest News' : (item.section?.name || 'General'),
@@ -217,19 +229,38 @@ const HomePage = () => {
                 month: 'long',
                 day: 'numeric',
               }),
-              Mostread,
-              isStory,
-              isCinema,
-              isComedy,
-              isSport,
-              isRap,
-              isAfroTcham,
-              isBuzz,
-              isAlaune,
+              Mostread: Mostread || !!item.mostread,
+              isStory: isStory || !!item.is_story,
+              isCinema: isCinema || !!item.is_cinema,
+              isComedy: isComedy || !!item.is_comedy,
+              isSport: isSport || !!item.is_sport,
+              isRap: isRap || !!item.is_rap,
+              isAfroTcham: isAfroTcham || !!item.is_afrotcham,
+              isBuzz: isBuzz || !!item.is_buzz,
+              isAlaune: isAlaune || !!item.is_alaune,
+              isAlauneActual: !!item.alauneactual,
+              isVideoActual: !!item.videoactual,
+              isEventActual: !!item.eventactual,
               isActualite,
             };
           });
         };
+
+        const categoryMatches = (items, keywords) => {
+          const normalizedKeywords = keywords.map((k) => k.toLowerCase());
+          return items.filter((item) => {
+            const categoryName = (item.category?.name || '').toLowerCase();
+            return normalizedKeywords.some((kw) => categoryName.includes(kw));
+          });
+        };
+
+        const genericPublished = Array.isArray(latestPublishedData) ? latestPublishedData : [];
+        const buzzFallback = categoryMatches(genericPublished, ['buzz']);
+        const afroFallback = categoryMatches(genericPublished, ['afrotcham', 'afro tcham']);
+        const rapFallback = categoryMatches(genericPublished, ['rap']);
+        const sportFallback = categoryMatches(genericPublished, ['sport']);
+        const comedyFallback = categoryMatches(genericPublished, ['comedy', 'comedie', 'comédie']);
+        const cinemaFallback = categoryMatches(genericPublished, ['cinema', 'cinéma']);
 
         // Process DirectTV video
         const processDirectTvVideo = (programs) => {
@@ -263,16 +294,17 @@ const HomePage = () => {
         };
 
         setContent({
-          alaune: processItems(alauneData, false, false, false, false, false, false, false, true),
-          buzz: processItems(buzzData, false, false, false, false, false, false, true),
+          alaune: processItems((alauneData?.length ? alauneData : genericPublished), false, false, false, false, false, false, false, true),
+          buzz: processItems((buzzData?.length ? buzzData : buzzFallback), false, false, false, false, false, false, true),
           latestNews: processItems(latestNewsData, false, false, false, false, false, false, false, false, true), // Updated processing
-          afroTcham: processItems(afroTchamData, false, false, false, false, false, true),
-          rap: processItems(rapData, false, false, false, false, true),
-          sport: processItems(sportData, false, false, false, true),
-          comedie: processItems(comedieData, false, false, true),
-          cinema: processItems(cinemaData, false, true),
+          afroTcham: processItems((afroTchamData?.length ? afroTchamData : afroFallback), false, false, false, false, false, true),
+          rap: processItems((rapData?.length ? rapData : rapFallback), false, false, false, false, true),
+          sport: processItems((sportData?.length ? sportData : sportFallback), false, false, false, true),
+          comedie: processItems((comedieData?.length ? comedieData : comedyFallback), false, false, true),
+          cinema: processItems((cinemaData?.length ? cinemaData : cinemaFallback), false, true),
           mostread: processItems(mostreadData, true, false, false, false, false, false, false, false),
           story: processItems(storyData, false, true, false, false, false, false, false, false),
+          latestPublished: processItems(genericPublished),
           directTVVideo: processDirectTvVideo(directTvData),
           sections,
           loading: false,
@@ -402,6 +434,25 @@ const HomePage = () => {
     }
   };
 
+  const getArticleDetailPath = (item) => {
+    const category = (item.category || '').toLowerCase();
+    const section = (item.section || '').toLowerCase();
+
+    if (item.isStory) return `/stories/${item.id}`;
+    if (item.isVideoActual) return `/videoactual/${item.id}`;
+    if (item.isEventActual) return `/eventactual/${item.id}`;
+    if (item.isAlauneActual) return `/alauneactual/${item.id}`;
+    if (item.isBuzz || category.includes('buzz') || section.includes('buzz')) return `/buzz/${item.id}`;
+    if (item.isAfroTcham || category.includes('afrotcham')) return `/afrotcham/${item.id}`;
+    if (item.isRap || category.includes('rap')) return `/rap/${item.id}`;
+    if (item.isSport || category.includes('sport')) return `/sport/${item.id}`;
+    if (item.isComedy || category.includes('comédie') || category.includes('comedie') || category.includes('comedy')) return `/comedy/${item.id}`;
+    if (item.isCinema || category.includes('cinéma') || category.includes('cinema')) return `/cinema/${item.id}`;
+    if (item.Mostread) return `/mostread/${item.id}`;
+    if (item.isAlaune) return `/alaune/${item.id}`;
+    return `/alaune/${item.id}`;
+  };
+
   if (content.loading) {
     return (
       <div className="min-h-screen bg-blue-900 flex items-center justify-center">
@@ -442,6 +493,33 @@ const HomePage = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Derniers articles publies */}
+        <section className="mb-10 bg-blue-900 backdrop-blur-sm p-6 rounded-xl shadow-xl">
+          <div className="flex items-center mb-6">
+            <div className="bg-gradient-to-tr from-cyan-500 to-blue-500 p-2 rounded-lg shadow-md mr-3">
+              <TrendingUp className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-white">DERNIERS ARTICLES PUBLIES</h2>
+          </div>
+          {content.latestPublished.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {content.latestPublished.slice(0, 6).map((item) => (
+                <Link key={`latest-${item.id}`} href={getArticleDetailPath(item)}>
+                  <div className="bg-white/10 hover:bg-white/15 transition rounded-lg p-4 h-full">
+                    <p className="text-cyan-300 text-xs mb-2">{item.category}</p>
+                    <h3 className="text-white font-semibold line-clamp-2 mb-2">{item.title}</h3>
+                    <p className="text-white/80 text-sm line-clamp-3">{item.description}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-blue-800/20 rounded-lg p-8 text-center">
+              <p className="text-white">Aucun article publie pour le moment</p>
+            </div>
+          )}
+        </section>
+
         {/* À la Une Section */}
         <section className="mb-10 bg-blue-900 backdrop-blur-sm p-6 rounded-xl shadow-xl">
           <div className="flex items-center justify-between mb-6">

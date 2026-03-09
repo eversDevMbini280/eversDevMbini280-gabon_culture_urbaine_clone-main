@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { Editor } from '@tinymce/tinymce-react';
 
-const AProposDashboard = () => {
+const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }) => {
   const teamScrollContainerRef = useRef(null);
   const milestoneScrollContainerRef = useRef(null);
   const statsScrollContainerRef = useRef(null);
@@ -44,8 +44,8 @@ const AProposDashboard = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [imageError, setImageError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const apiUrl = 'https://gabon-culture-urbaine-1.onrender.com/apropos';
-  const staticUrl = 'https://gabon-culture-urbaine-1.onrender.com';
+  const aproposApiUrl = `${apiUrl}/apropos`;
+  const staticUrl = apiUrl;
   const MAX_FILE_SIZE = 2 * 1024 * 1024;
   const iconOptions = ['Clock', 'Headphones', 'Tv', 'Users', 'Camera', 'PlayCircle', 'Award'];
   const router = useRouter();
@@ -57,7 +57,7 @@ const AProposDashboard = () => {
       return null;
     }
     try {
-      const response = await axios.post(`${apiUrl}/auth/refresh`, { refresh_token: refreshToken });
+      const response = await axios.post(`${apiUrl}/api/auth/refresh`, { refresh_token: refreshToken });
       const { access_token, refresh_token: newRefreshToken } = response.data;
       localStorage.setItem('token', access_token);
       localStorage.setItem('refresh_token', newRefreshToken);
@@ -102,13 +102,13 @@ const AProposDashboard = () => {
 
         const headers = { Authorization: `Bearer ${token}` };
         const [teamRes, milestoneRes, statsRes, valuesRes, contactRes, aboutRes, studiosRes] = await Promise.all([
-          axios.get(`${apiUrl}/team-members/`, { headers }),
-          axios.get(`${apiUrl}/milestones/`, { headers }),
-          axios.get(`${apiUrl}/stats/`, { headers }),
-          axios.get(`${apiUrl}/values/`, { headers }),
-          axios.get(`${apiUrl}/contact-info/`, { headers }),
-          axios.get(`${apiUrl}/about-content/`, { headers }),
-          axios.get(`${apiUrl}/studios/`, { headers }),
+          axios.get(`${aproposApiUrl}/team-members/`, { headers }),
+          axios.get(`${aproposApiUrl}/milestones/`, { headers }),
+          axios.get(`${aproposApiUrl}/stats/`, { headers }),
+          axios.get(`${aproposApiUrl}/values/`, { headers }),
+          axios.get(`${aproposApiUrl}/contact-info/`, { headers }),
+          axios.get(`${aproposApiUrl}/about-content/`, { headers }),
+          axios.get(`${aproposApiUrl}/studios/`, { headers }),
         ]);
 
         setTeamMembers(teamRes.data);
