@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FileText, Plus, Edit, Trash2, RefreshCw, Check, X, Clock, Send } from 'lucide-react';
 import { Editor } from '@tinymce/tinymce-react';
 
@@ -56,51 +56,8 @@ const Articles = ({ apiUrl = API_BASE_URL }) => {
     expiredStories: 0,
   });
 
-  // Check authentication and fetch initial data
-  useEffect(() => {
-    const accessToken = localStorage.getItem('token');
-    const refreshToken = localStorage.getItem('refresh_token');
-    if (accessToken && refreshToken) {
-      setIsAuthenticated(true);
-      fetchData();
-    }
-  }, []);
-
-  // Update expired stories count
-  useEffect(() => {
-    const expiredStories = state.articles.filter(
-      (a) => a.is_story && a.story_expires_at && new Date(a.story_expires_at) <= new Date()
-    ).length;
-    setState((prev) => ({ ...prev, expiredStories }));
-  }, [state.articles]);
-
-  // Login handler
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`${apiUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          username: loginData.username,
-          password: loginData.password,
-        }),
-      });
-      if (!response.ok) throw new Error('Login failed');
-      const data = await response.json();
-      localStorage.setItem('token', data.access_token);
-      localStorage.setItem('refresh_token', data.refresh_token);
-      localStorage.setItem('user_info', JSON.stringify(data.user_info));
-      setIsAuthenticated(true);
-      fetchData();
-    } catch (error) {
-      console.error('Error logging in:', error);
-      alert('Login failed. Please check your credentials.');
-    }
-  };
-
-  // Refresh token handler
-  const refreshToken = async () => {
+  // Refresh token handler — wrapped in useCallback so fetchData can depend on it
+  const refreshToken = useCallback(async () => {
     const storedRefreshToken = localStorage.getItem('refresh_token');
     if (!storedRefreshToken) return null;
     try {
@@ -120,10 +77,10 @@ const Articles = ({ apiUrl = API_BASE_URL }) => {
       console.error('Error refreshing token:', error);
       return null;
     }
-  };
+  }, [apiUrl]);
 
-  // Fetch articles, categories, and sections
-  const fetchData = async () => {
+  // FIX 1: wrap fetchData in useCallback so it can be listed as useEffect dependency
+  const fetchData = useCallback(async () => {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
       let token = localStorage.getItem('token');
@@ -138,7 +95,7 @@ const Articles = ({ apiUrl = API_BASE_URL }) => {
       }
       const headers = { Authorization: `Bearer ${token}` };
       let [articlesRes, categoriesRes, sectionsRes] = await Promise.all([
-        fetch(`${apiUrl}/api/articles/?status=published`, { headers }).catch((err) => ({
+        fetch(`${apiUrl}/api/articles/`, { headers }).catch((err) => ({
           ok: false,
           status: 500,
           statusText: `Network error: ${err.message}`,
@@ -152,7 +109,7 @@ const Articles = ({ apiUrl = API_BASE_URL }) => {
           const newToken = await refreshToken();
           if (newToken) {
             headers.Authorization = `Bearer ${newToken}`;
-            const retryRes = await fetch(`${apiUrl}/api/articles/?status=published`, { headers });
+            const retryRes = await fetch(`${apiUrl}/api/articles/`, { headers });
             if (retryRes.ok) articlesRes = retryRes;
           }
         }
@@ -187,6 +144,49 @@ const Articles = ({ apiUrl = API_BASE_URL }) => {
         loading: false,
         error: error.message,
       }));
+    }
+  }, [apiUrl, refreshToken]);
+
+  // Check authentication and fetch initial data
+  useEffect(() => {
+    const accessToken = localStorage.getItem('token');
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (accessToken && refreshToken) {
+      setIsAuthenticated(true);
+      fetchData();
+    }
+  }, [fetchData]);
+
+  // Update expired stories count
+  useEffect(() => {
+    const expiredStories = state.articles.filter(
+      (a) => a.is_story && a.story_expires_at && new Date(a.story_expires_at) <= new Date()
+    ).length;
+    setState((prev) => ({ ...prev, expiredStories }));
+  }, [state.articles]);
+
+  // Login handler
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${apiUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          username: loginData.username,
+          password: loginData.password,
+        }),
+      });
+      if (!response.ok) throw new Error('Login failed');
+      const data = await response.json();
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+      localStorage.setItem('user_info', JSON.stringify(data.user_info));
+      setIsAuthenticated(true);
+      fetchData();
+    } catch (error) {
+      console.error('Error logging in:', error);
+      alert('Login failed. Please check your credentials.');
     }
   };
 
@@ -758,13 +758,14 @@ const Articles = ({ apiUrl = API_BASE_URL }) => {
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center">
+          <h1 style={{ color: 'black' }} className="text-gray-900 dark:text-white flex items-center">
             <FileText className="mr-3 text-indigo-500" /> Article Management
           </h1>
           {!state.isEditing ? (
             <button
               id="add-new-article-button"
               onClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
+              style={{ color: 'black' }}
               className="inline-flex items-center px-4 py-3 bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-lg hover:from-green-600 hover:to-teal-700 transition-all duration-300 shadow-md transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
               aria-label="Add new article"
             >
@@ -849,6 +850,7 @@ const Articles = ({ apiUrl = API_BASE_URL }) => {
             </label>
             <button
               onClick={fetchData}
+              style ={{ color: 'black' }}
               className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               aria-label="Refresh articles"
             >
@@ -884,23 +886,26 @@ const Articles = ({ apiUrl = API_BASE_URL }) => {
                   Title *
                 </label>
               </div>
-              <div className="relative">
+              <div>
+                <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
+                  Catégorie *
+                </label>
                 <select
+                  id="category_id"
                   name="category_id"
                   value={state.formData.category_id}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
                   required
-                  aria-label="Category"
+                  aria-label="Catégorie"
                 >
-                  <option value="" className="text-gray-900 dark:text-white">Select Category</option>
+                  <option value="" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">Sélectionner une catégorie</option>
                   {state.categories.map((category) => (
-                    <option key={category.id} value={category.id} className="text-gray-900 dark:text-white">
+                    <option key={category.id} value={category.id} className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">
                       {category.name}
                     </option>
                   ))}
                 </select>
-                <label className="absolute -top-6 left-4 text-sm text-gray-500 dark:text-gray-400">Category *</label>
               </div>
               <div className="relative">
                 <select
@@ -1020,6 +1025,7 @@ const Articles = ({ apiUrl = API_BASE_URL }) => {
                   aria-label="Upload image"
                 />
                 {state.imagePreview && (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={state.imagePreview}
                     alt="Preview"
@@ -1138,7 +1144,7 @@ const Articles = ({ apiUrl = API_BASE_URL }) => {
             </div>
             {filteredArticles.length === 0 ? (
               <div className="p-6 text-center text-gray-500 dark:text-gray-400">
-                No published articles found. Create or publish an article to see it here.
+                No articles found. Create an article to see it here.
               </div>
             ) : (
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -1165,6 +1171,7 @@ const Articles = ({ apiUrl = API_BASE_URL }) => {
                           <div className="flex-shrink-0 h-10 w-10 rounded overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center border relative">
                             {article.image_url ? (
                               <>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={getImageUrl(article.image_url)}
                                   alt={article.title}

@@ -17,6 +17,8 @@ function isArticleListPath(pathname) {
     "culture-urbaine-articles",
     "actualitehome",
     "events",
+    "categories",  // ← ajoute cette ligne
+    "sections",
   ];
 
   return listEndpoints.some((segment) => pathname.includes(segment));

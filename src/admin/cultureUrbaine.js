@@ -1734,18 +1734,23 @@ const CultureUrbaineArticlesDashboard = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Catégorie</label>
+            <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
+              Catégorie *
+            </label>
             <select
+              id="category_id"
               name="category_id"
               value={formData.category_id}
               onChange={handleInputChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+              className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
               required
               aria-label="Catégorie"
             >
               <option value="" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">Sélectionner une catégorie</option>
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.id} className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">{cat.name}</option>
+                <option key={cat.id} value={cat.id} className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">
+                  {cat.name}
+                </option>
               ))}
             </select>
           </div>

@@ -10,7 +10,7 @@
 # from database import get_db, SessionLocal
 # from models import Article, User, Category, Section
 # from schemas import ArticleResponse, ArticleCreate, ArticleUpdate
-# from routers import articles, sections, categories, articles2, articles3, users, directv
+# from routers import articles, sections, categories, gestionDesEvenements, gestionDeEntrepreneuriat, users, directv
 # from routers.auth import router as auth_router
 # import logging
 
@@ -76,8 +76,8 @@
 
 # # Include routers
 # app.include_router(articles.router)
-# app.include_router(articles2.router)
-# app.include_router(articles3.router)
+# app.include_router(gestionDesEvenements.router)
+# app.include_router(gestionDeEntrepreneuriat.router)
 # app.include_router(categories.router)
 # app.include_router(sections.router)
 # app.include_router(auth_router)
@@ -99,7 +99,22 @@ import logging
 from database import get_db, SessionLocal
 from models import Article, User, Category, Section
 from schemas import ArticleResponse, ArticleCreate, ArticleUpdate
-from routers import articles, sections, categories, articles2, articles3, users, directv, upcoming_program, images, apropos, articles4, articles5, articles6, articlesactual
+from routers import (
+    articles,
+    articles2 as evenements,
+    articles3 as entrepreneuriat,
+    articles4 as sciences,
+    articles5 as cultureUrbaine,
+    articles6 as artEtTraditions,
+    categories,
+    sections,
+    users,
+    directv,
+    upcoming_program,
+    images,
+    apropos,
+    articlesactual,
+)
 from routers.auth import router as auth_router
 
 app = FastAPI(title="Gabon Culture Urbaine API")
@@ -176,11 +191,11 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Include routers
 app.include_router(articles.router)
-app.include_router(articles2.router)
-app.include_router(articles3.router)
-app.include_router(articles4.router)
-app.include_router(articles5.router)
-app.include_router(articles6.router)
+app.include_router(evenements.router)
+app.include_router(entrepreneuriat.router)
+app.include_router(sciences.router)
+app.include_router(cultureUrbaine.router)
+app.include_router(artEtTraditions.router)
 app.include_router(categories.router)
 app.include_router(sections.router)
 app.include_router(auth_router)

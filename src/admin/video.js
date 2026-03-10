@@ -42,6 +42,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
   const [formError, setFormError] = useState(null);
   const [formSuccess, setFormSuccess] = useState(null);
   const [debugInfo, setDebugInfo] = useState(null); // For debugging
+  const [categories, setCategories] = useState([]);
   
   // New state for upcoming programs
   const [upcomingProgram, setUpcomingProgram] = useState('');
@@ -144,6 +145,19 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/api/categories/`, { cache: 'no-store' });
+      if (!response.ok) {
+        return;
+      }
+      const data = await response.json();
+      setCategories(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+    }
+  };
+
   // Load upcoming program from localStorage on component mount
   useEffect(() => {
     const savedProgram = localStorage.getItem('upcomingProgram');
@@ -155,6 +169,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
   useEffect(() => {
     console.log('Videos component mounted, fetching videos at', new Date().toLocaleString());
     fetchVideos();
+    fetchCategories();
     
     // Set up a refresh interval to periodically check for new videos
     console.log('Setting up 24-hour refresh interval at', new Date().toLocaleString());
@@ -745,16 +760,25 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie ID *</label>
-                      <input
-                        type="number"
+                      <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
+                        Catégorie *
+                      </label>
+                      <select
+                        id="category_id"
                         name="category_id"
                         value={formData.category_id}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="ID de la catégorie"
+                        className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
                         required
-                      />
+                        aria-label="Catégorie"
+                      >
+                        <option value="" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">Sélectionner une catégorie</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id} className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   
@@ -992,18 +1016,25 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
           </div>
           
           <div>
-            <label htmlFor="edit-category_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie ID *</label>
-            <input
-              type="number"
+            <label htmlFor="edit-category_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Catégorie *
+            </label>
+            <select
               id="edit-category_id"
               name="category_id"
               value={formData.category_id}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:border-gray-600"
-              placeholder="ID de la catégorie"
+              className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
               required
-              aria-label="ID de la catégorie"
-            />
+              aria-label="Catégorie"
+            >
+              <option value="" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">Sélectionner une catégorie</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id} className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
         
