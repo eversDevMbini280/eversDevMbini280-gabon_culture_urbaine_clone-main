@@ -1,431 +1,549 @@
-"use client";
+'use client';
 import React, { useState, useEffect, useCallback } from 'react';
-import { Layers, Plus, Edit, Trash2, RefreshCw, Check, X } from 'lucide-react';
+import { Plus, Edit, Trash2, RefreshCw, Layers, X, Check } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const styles = `
+  .sec-form-shell {
+    background: #0f0f13;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.45);
+    margin-top: 24px;
+  }
+  .sec-form-shell::before {
+    content:''; position:absolute; top:-100px; right:-100px;
+    width:300px; height:300px;
+    background:radial-gradient(circle,rgba(59,130,246,0.14) 0%,transparent 70%);
+    pointer-events:none;
+  }
+  .sec-form-title {
+    font-size: 1.2rem; font-weight: 700; color: #fff;
+    margin-bottom: 20px; display:flex; align-items:center; gap:10px;
+  }
+  .sec-form-title span {
+    display:inline-block; width:6px; height:20px;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    border-radius:3px;
+  }
+  .sec-static-label {
+    display:block; font-size:0.7rem; font-weight:600;
+    color:rgba(255,255,255,0.45); letter-spacing:0.08em;
+    text-transform:uppercase; margin-bottom:8px;
+  }
+  .sec-input, .sec-textarea {
+    width:100%;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px; padding:12px 14px;
+    font-size:0.875rem; font-family:inherit; color:#f0f0f5;
+    outline:none; transition:border-color 0.2s,background 0.2s,box-shadow 0.2s;
+  }
+  .sec-input::placeholder, .sec-textarea::placeholder { color:rgba(255,255,255,0.25); }
+  .sec-input:focus, .sec-textarea:focus {
+    border-color:rgba(59,130,246,0.6);
+    background:rgba(59,130,246,0.06);
+    box-shadow:0 0 0 3px rgba(59,130,246,0.12);
+  }
+  .sec-textarea { resize: vertical; min-height: 90px; }
+  .sec-form-actions {
+    display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; margin-top:6px;
+  }
+  .sec-btn-cancel {
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:10px 18px; border-radius:12px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    color:rgba(255,255,255,0.7); font-size:0.875rem; font-weight:600;
+    transition:all 0.2s;
+  }
+  .sec-btn-cancel:hover { background:rgba(255,255,255,0.1); color:#fff; }
+  .sec-btn-submit {
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:10px 20px; border-radius:12px; border:none;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    color:#fff; font-size:0.875rem; font-weight:700; letter-spacing:0.02em;
+    box-shadow:0 4px 20px rgba(59,130,246,0.35); transition:all 0.2s;
+  }
+  .sec-btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow:0 8px 28px rgba(59,130,246,0.5); }
+  .sec-btn-submit:disabled { opacity:0.5; cursor:not-allowed; }
+  .sec-icon-btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:10px;
+    border:1px solid rgba(255,255,255,0.1);
+    background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.6);
+    transition:all 0.2s;
+  }
+  .sec-icon-btn:hover { background:rgba(255,255,255,0.1); color:#fff; }
+  .sec-helper { color:rgba(255,255,255,0.35); font-weight:500; text-transform:none; letter-spacing:0; }
 
-const Sections = ({ apiUrl = API_BASE_URL }) => {
-  const [state, setState] = useState({
-    sections: [],
-    loading: true,
-    error: null,
-    searchQuery: '',
-    isEditing: false,
-    currentSection: null,
-    formData: {
-      name: '',
-      slug: '',
-      description: '',
-      _slugEdited: false,
-    },
+  .sec-list-shell {
+    background:#0f0f13;
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:20px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.45);
+    margin-bottom:24px;
+    overflow:hidden;
+  }
+  .sec-list-header {
+    padding:18px 20px;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;
+  }
+  .sec-search-wrap { position:relative; }
+  .sec-search-input {
+    width:100%; max-width:360px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px; padding:11px 14px 11px 40px;
+    font-size:0.875rem; color:#f0f0f5; outline:none;
+    transition:border-color 0.2s, box-shadow 0.2s;
+  }
+  .sec-search-input::placeholder { color:rgba(255,255,255,0.25); }
+  .sec-search-input:focus { border-color:rgba(59,130,246,0.5); box-shadow:0 0 0 3px rgba(59,130,246,0.10); }
+  .sec-search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:rgba(255,255,255,0.25); pointer-events:none; }
+  .sec-table-wrap { overflow-x:auto; }
+  .sec-table { width:100%; border-collapse:collapse; }
+  .sec-table thead th {
+    text-align:left; font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase;
+    color:rgba(255,255,255,0.35); padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .sec-table tbody td {
+    padding:12px 16px; font-size:0.85rem; color:rgba(255,255,255,0.7);
+    border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .sec-table tbody tr:hover { background:rgba(255,255,255,0.03); }
+  .sec-slug {
+    display:inline-flex; align-items:center; padding:3px 8px; border-radius:8px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    color:rgba(255,255,255,0.65); font-size:0.72rem;
+  }
+  .sec-actions { display:flex; gap:8px; }
+  .sec-action-btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:30px; height:30px; border-radius:8px;
+    border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03);
+    color:rgba(255,255,255,0.45); transition:all 0.15s;
+  }
+  .sec-action-btn:hover { background:rgba(255,255,255,0.08); color:#fff; }
+  .sec-action-btn.edit:hover { background:rgba(99,102,241,0.15); color:#a5b4fc; border-color:rgba(99,102,241,0.35); }
+  .sec-action-btn.del:hover { background:rgba(239,68,68,0.15); color:#fca5a5; border-color:rgba(239,68,68,0.35); }
+  .sec-empty { padding:60px 24px; text-align:center; color:rgba(255,255,255,0.25); }
+`;
+
+const Sections = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }) => {
+  const [sections, setSections] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [formData, setFormData] = useState({
+    id: null,
+    name: '',
+    slug: '',
+    description: '',
   });
 
-  // Auto-generate slug from name
+  // ─── Token helper ────────────────────────────────────────────────────────────
+  const apiFetch = useCallback(async (url, options = {}) => {
+    const token = localStorage.getItem('token');
+    return fetch(url, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        ...options.headers,
+      },
+    });
+  }, []);
+
+  // ─── Auto-generate slug from name ───────────────────────────────────────────
   const generateSlug = (name) =>
-    name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
 
-  // Get token helper
-  const getToken = () => localStorage.getItem('token');
+  const handleNameChange = (e) => {
+    const name = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      name,
+      slug: !isEditing ? generateSlug(name) : prev.slug,
+    }));
+  };
 
-  // Fetch sections
+  // ─── Fetch all sections ──────────────────────────────────────────────────────
   const fetchSections = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage('');
     try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-      const token = getToken();
-      const res = await fetch(`${apiUrl}/api/sections/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error(`Erreur ${res.status} : ${res.statusText}`);
-      const sections = await res.json();
-      setState((prev) => ({ ...prev, sections, loading: false }));
+      const response = await apiFetch(`${apiUrl}/api/sections/`);
+      if (!response || !response.ok) {
+        const err = await response?.json().catch(() => ({}));
+        throw new Error(err?.detail || 'Échec de la récupération des sections.');
+      }
+      const data = await response.json();
+      setSections(Array.isArray(data) ? data : []);
     } catch (error) {
-      setState((prev) => ({ ...prev, loading: false, error: error.message }));
+      setErrorMessage(error.message || 'Erreur lors du chargement des sections.');
+    } finally {
+      setIsLoading(false);
     }
-  }, [apiUrl]);
+  }, [apiUrl, apiFetch]);
 
   useEffect(() => {
     fetchSections();
   }, [fetchSections]);
 
-  // Input handler
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setState((prev) => ({
-      ...prev,
-      formData: {
-        ...prev.formData,
-        [name]: value,
-        ...(name === 'name' && !prev.formData._slugEdited
-          ? { slug: generateSlug(value) }
-          : {}),
-      },
-    }));
-  };
+  // ─── Auto-dismiss success message ───────────────────────────────────────────
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(''), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
-  const handleSlugChange = (e) => {
-    setState((prev) => ({
-      ...prev,
-      formData: {
-        ...prev.formData,
-        slug: e.target.value,
-        _slugEdited: true,
-      },
-    }));
-  };
-
-  // Save or update section
-  const saveSection = async (e) => {
+  // ─── Submit (create or update) ───────────────────────────────────────────────
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setState((prev) => ({ ...prev, loading: true, error: null }));
+    if (!formData.name.trim()) {
+      setErrorMessage('Le nom de la section est obligatoire.');
+      return;
+    }
+    if (!formData.slug.trim()) {
+      setErrorMessage('Le slug est obligatoire.');
+      return;
+    }
+    setIsSubmitting(true);
+    setErrorMessage('');
     try {
-      const token = getToken();
-      const { currentSection, formData } = state;
-      const payload = {
-        name: formData.name,
-        slug: formData.slug,
-        description: formData.description || null,
+      const method = isEditing ? 'PUT' : 'POST';
+      const url = isEditing
+        ? `${apiUrl}/api/sections/${formData.id}`
+        : `${apiUrl}/api/sections/`;
+
+      const body = {
+        name: formData.name.trim(),
+        slug: formData.slug.trim(),
+        description: formData.description.trim() || null,
       };
 
-      const url = currentSection
-        ? `${apiUrl}/api/sections/${currentSection.id}`
-        : `${apiUrl}/api/sections/`;
-      const method = currentSection ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `Erreur ${response.status}`);
+      if (!response || !response.ok) {
+        const responseData = await response?.json().catch(() => ({}));
+        throw new Error(
+          responseData?.detail ||
+            `Échec de la ${isEditing ? 'mise à jour' : 'création'} de la section.`
+        );
       }
 
-      const saved = await response.json();
-      setState((prev) => ({
-        ...prev,
-        sections: currentSection
-          ? prev.sections.map((s) => (s.id === saved.id ? saved : s))
-          : [...prev.sections, saved],
-        isEditing: false,
-        currentSection: null,
-        formData: { name: '', slug: '', description: '', _slugEdited: false },
-        loading: false,
-      }));
-      alert(currentSection ? 'Section mise à jour avec succès' : 'Section créée avec succès');
+      const responseData = await response.json();
+
+      if (isEditing) {
+        setSections(sections.map((s) => (s.id === formData.id ? responseData : s)));
+        setSuccessMessage('Section mise à jour avec succès !');
+      } else {
+        setSections([...sections, responseData]);
+        setSuccessMessage('Section créée avec succès !');
+      }
+      resetForm();
     } catch (error) {
-      setState((prev) => ({ ...prev, loading: false, error: error.message }));
-      alert(`Erreur : ${error.message}`);
+      setErrorMessage(error.message || 'Erreur lors de la sauvegarde.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Delete section
-  const deleteSection = async (id) => {
-    if (!confirm('Supprimer cette section ? Les articles associés ne seront pas supprimés.')) return;
+  // ─── Edit ────────────────────────────────────────────────────────────────────
+  const handleEdit = (section) => {
+    setFormData({
+      id: section.id,
+      name: section.name || '',
+      slug: section.slug || '',
+      description: section.description || '',
+    });
+    setIsEditing(true);
+    setErrorMessage('');
+    setShowForm(true);
+  };
+
+  // ─── Delete ──────────────────────────────────────────────────────────────────
+  const handleDelete = async (id) => {
+    if (!confirm('Voulez-vous vraiment supprimer cette section ? Les articles associés ne seront pas supprimés.')) return;
     try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-      const token = getToken();
-      const response = await fetch(`${apiUrl}/api/sections/${id}`, {
+      const response = await apiFetch(`${apiUrl}/api/sections/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `Erreur ${response.status}`);
+      if (!response || !response.ok) {
+        const err = await response?.json().catch(() => ({}));
+        throw new Error(err?.detail || 'Échec de la suppression.');
       }
-
-      setState((prev) => ({
-        ...prev,
-        sections: prev.sections.filter((s) => s.id !== id),
-        loading: false,
-      }));
-      alert('Section supprimée avec succès');
+      setSections(sections.filter((s) => s.id !== id));
+      setSuccessMessage('Section supprimée avec succès !');
     } catch (error) {
-      setState((prev) => ({ ...prev, loading: false, error: error.message }));
-      alert(`Erreur : ${error.message}`);
+      setErrorMessage(error.message || 'Erreur lors de la suppression.');
     }
   };
 
-  // Edit section
-  const editSection = (section) => {
-    setState((prev) => ({
-      ...prev,
-      isEditing: true,
-      currentSection: section,
-      formData: {
-        name: section.name,
-        slug: section.slug,
-        description: section.description || '',
-        _slugEdited: true,
-      },
-    }));
+  // ─── Reset form ──────────────────────────────────────────────────────────────
+  const resetForm = () => {
+    setFormData({ id: null, name: '', slug: '', description: '' });
+    setIsEditing(false);
+    setErrorMessage('');
+    setShowForm(false);
   };
 
-  // Cancel
-  const cancelEdit = () => {
-    setState((prev) => ({
-      ...prev,
-      isEditing: false,
-      currentSection: null,
-      formData: { name: '', slug: '', description: '', _slugEdited: false },
-    }));
-  };
-
-  const filteredSections = state.sections.filter((s) =>
-    s.name.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
-    (s.slug || '').toLowerCase().includes(state.searchQuery.toLowerCase())
+  // ─── Filtered list ───────────────────────────────────────────────────────────
+  const filteredSections = sections.filter(
+    (s) =>
+      s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.slug?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gray-100 p-6">
+      <style>{styles}</style>
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h1 style={{ color : 'black'}} className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Layers className="mr-3 text-indigo-500" />
-            Gestion des Sections
-          </h1>
-          {!state.isEditing ? (
-            <button
-              onClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
-              style={{ color : 'black'}}
-              className="inline-flex items-center px-4 py-3 bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-lg hover:from-green-600 hover:to-teal-700 transition-all duration-300 shadow-md transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Ajouter une Section
-            </button>
-          ) : (
-            <button
-              onClick={cancelEdit}
-              className="inline-flex items-center px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-            >
-              <X className="w-5 h-5 mr-2" />
-              Annuler
-            </button>
-          )}
+      {/* ─── Header ──────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">Gestion des Sections</h3>
+          <p className="text-sm text-gray-500">Créez et gérez les sections d&apos;articles</p>
+        </div>
+        <button
+          onClick={() => {
+            resetForm();
+            setShowForm(true);
+          }}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          Ajouter une section
+        </button>
+      </div>
+
+      {/* ─── Search + table ──────────────────────────────────────────────────── */}
+      <div className="sec-list-shell">
+        <div className="sec-list-header">
+          <div className="sec-search-wrap">
+            <input
+              type="text"
+              placeholder="Rechercher par nom, slug, description..."
+              className="sec-search-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Rechercher une section"
+            />
+            <svg className="sec-search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <button
+            onClick={fetchSections}
+            className="inline-flex items-center px-3 py-2 bg-white/10 text-white/70 rounded-lg hover:bg-white/20 transition-colors text-sm"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Rafraîchir
+          </button>
         </div>
 
-        {/* Error */}
-        {state.error && (
-          <div className="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 p-4 mb-6 rounded-lg shadow-md">
-            <div className="flex">
-              <X className="h-5 w-5 text-red-400 flex-shrink-0" />
-              <p className="ml-3 text-red-700 dark:text-red-300">{state.error}</p>
-            </div>
+        {/* Messages */}
+        {errorMessage && (
+          <div className="mx-4 mb-4 p-3 bg-red-500/10 text-red-200 border border-red-500/30 rounded-md">
+            {errorMessage}
           </div>
         )}
-
-        {/* Form */}
-        {state.isEditing && (
-          <form
-            onSubmit={saveSection}
-            className="mb-8 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl"
-          >
-            <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">
-              {state.currentSection ? 'Modifier la Section' : 'Créer une Section'}
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Name */}
-              <div className="relative">
-                <input
-                  type="text"
-                  name="name"
-                  value={state.formData.name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600 peer"
-                  required
-                  placeholder=" "
-                  id="section-name"
-                />
-                <label
-                  htmlFor="section-name"
-                  className="absolute left-4 top-3 text-gray-500 dark:text-gray-400 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-6 peer-focus:text-sm peer-focus:text-indigo-500"
-                >
-                  Nom *
-                </label>
-              </div>
-
-              {/* Slug */}
-              <div className="relative">
-                <input
-                  type="text"
-                  name="slug"
-                  value={state.formData.slug}
-                  onChange={handleSlugChange}
-                  className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600 peer"
-                  required
-                  placeholder=" "
-                  id="section-slug"
-                />
-                <label
-                  htmlFor="section-slug"
-                  className="absolute left-4 top-3 text-gray-500 dark:text-gray-400 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-6 peer-focus:text-sm peer-focus:text-indigo-500"
-                >
-                  Slug * (auto-généré)
-                </label>
-              </div>
-
-              {/* Description */}
-              <div className="relative md:col-span-2">
-                <textarea
-                  name="description"
-                  value={state.formData.description}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600 peer resize-none"
-                  placeholder=" "
-                  id="section-description"
-                />
-                <label
-                  htmlFor="section-description"
-                  className="absolute left-4 top-3 text-gray-500 dark:text-gray-400 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-6 peer-focus:text-sm peer-focus:text-indigo-500"
-                >
-                  Description (optionnel)
-                </label>
-              </div>
-            </div>
-
-            <div className="mt-6 flex gap-4 justify-end">
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 flex items-center shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-              >
-                <X className="mr-2" size={18} /> Annuler
-              </button>
-              <button
-                type="submit"
-                disabled={state.loading}
-                className="px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 flex items-center shadow-md transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                {state.loading ? (
-                  <RefreshCw className="mr-2 animate-spin" size={18} />
-                ) : (
-                  <Check className="mr-2" size={18} />
-                )}
-                {state.currentSection ? 'Mettre à jour' : 'Créer'}
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Loading */}
-        {state.loading && !state.isEditing && (
-          <div className="flex justify-center items-center h-64">
-            <RefreshCw className="w-10 h-10 text-indigo-500 animate-spin" />
+        {successMessage && (
+          <div className="mx-4 mb-4 p-3 bg-green-500/10 text-green-200 border border-green-500/30 rounded-md flex items-center gap-2">
+            <Check className="w-4 h-4" />
+            {successMessage}
           </div>
         )}
 
         {/* Table */}
-        {!state.isEditing && !state.loading && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-x-auto">
-            {/* Search + Refresh */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-              <div className="relative w-full sm:w-80">
-                <input
-                  type="text"
-                  placeholder="Rechercher une section..."
-                  value={state.searchQuery}
-                  onChange={(e) =>
-                    setState((prev) => ({ ...prev, searchQuery: e.target.value }))
-                  }
-                  className="w-full pl-10 pr-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 border border-gray-300 dark:border-gray-600"
-                />
-                <svg
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <button
-                onClick={fetchSections}
-                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Rafraîchir
-              </button>
+        <div className="sec-table-wrap">
+          {isLoading ? (
+            <div className="p-12 flex flex-col items-center justify-center text-gray-400">
+              <RefreshCw className="w-10 h-10 text-blue-400 animate-spin mb-4" />
+              <p>Chargement...</p>
+            </div>
+          ) : filteredSections.length > 0 ? (
+            <table className="sec-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nom</th>
+                  <th>Slug</th>
+                  <th>Description</th>
+                  <th>Créée le</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredSections.map((section) => (
+                  <tr key={section.id}>
+                    <td>#{section.id}</td>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-blue-400" />
+                        <span className="text-sm font-medium text-gray-100">{section.name}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="sec-slug">
+                        {section.slug}
+                      </span>
+                    </td>
+                    <td className="text-sm text-gray-400 max-w-xs truncate">
+                      {section.description || <span className="italic text-gray-500">—</span>}
+                    </td>
+                    <td className="text-sm text-gray-400">
+                      {section.created_at
+                        ? new Date(section.created_at).toLocaleDateString('fr-FR')
+                        : '—'}
+                    </td>
+                    <td>
+                      <div className="sec-actions">
+                        <button
+                          onClick={() => handleEdit(section)}
+                          className="sec-action-btn edit"
+                          aria-label="Modifier la section"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(section.id)}
+                          className="sec-action-btn del"
+                          aria-label="Supprimer la section"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="sec-empty">
+              <Layers className="w-16 h-16 text-gray-500 mb-4" />
+              <p className="mb-2">Aucune section trouvée</p>
+              <p className="text-sm text-gray-500">
+                {searchQuery
+                  ? 'Aucun résultat pour cette recherche.'
+                  : 'Ajoutez une section en cliquant sur "Ajouter une section".'}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ─── Form ────────────────────────────────────────────────────────────── */}
+      {showForm && (
+        <div className="sec-form-shell">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="sec-form-title">
+            <span />
+            {isEditing ? 'Modifier la section' : 'Ajouter une section'}
+          </h3>
+          {isEditing && (
+            <button
+              onClick={resetForm}
+              className="sec-icon-btn"
+              aria-label="Annuler la modification"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          )}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {/* Nom */}
+            <div>
+              <label htmlFor="section_name" className="sec-static-label">Nom *</label>
+              <input
+                type="text"
+                id="section_name"
+                value={formData.name}
+                onChange={handleNameChange}
+                className="sec-input"
+                placeholder="Ex: Contenus Récents"
+                required
+                aria-label="Nom de la section"
+              />
             </div>
 
-            {filteredSections.length === 0 ? (
-              <div className="p-10 text-center text-gray-500 dark:text-gray-400">
-                <Layers className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>Aucune section trouvée. Créez votre première section.</p>
-              </div>
-            ) : (
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nom</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Slug</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Créée le</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredSections.map((section, index) => (
-                    <tr
-                      key={section.id}
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                        index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900'
-                      }`}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Layers className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">{section.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded">
-                          {section.slug}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
-                        {section.description || <span className="italic opacity-50">—</span>}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(section.created_at).toLocaleDateString('fr-FR')}
-                      </td>
-                      <td className="px-6 py-4 flex gap-3">
-                        <button
-                          onClick={() => editSection(section)}
-                          className="text-indigo-500 hover:text-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                          aria-label={`Modifier ${section.name}`}
-                        >
-                          <Edit size={18} />
-                        </button>
-                        <button
-                          onClick={() => deleteSection(section.id)}
-                          className="text-red-500 hover:text-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                          aria-label={`Supprimer ${section.name}`}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            {/* Slug */}
+            <div>
+              <label htmlFor="section_slug" className="sec-static-label">
+                Slug * <span className="sec-helper">(auto-généré depuis le nom)</span>
+              </label>
+              <input
+                type="text"
+                id="section_slug"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                className="sec-input font-mono text-sm"
+                placeholder="ex: contenus-recents"
+                required
+                aria-label="Slug de la section"
+              />
+            </div>
+
           </div>
-        )}
+
+          {/* Description */}
+          <div>
+            <label htmlFor="section_description" className="sec-static-label">
+              Description <span className="sec-helper">(Optionnel)</span>
+            </label>
+            <textarea
+              id="section_description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="sec-textarea"
+              rows="3"
+              placeholder="Description de la section..."
+              aria-label="Description de la section"
+            />
+          </div>
+
+          <div className="sec-form-actions">
+            <button
+              type="button"
+              onClick={resetForm}
+              className="sec-btn-cancel"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="sec-btn-submit"
+            >
+              {isSubmitting ? 'Envoi...' : isEditing ? 'Mettre à jour' : 'Créer'}
+            </button>
+          </div>
+        </form>
       </div>
+      )}
+
     </div>
   );
 };

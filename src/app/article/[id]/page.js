@@ -49,6 +49,27 @@ const ArticleDetailPage = () => {
 
         if (!articleData) throw new Error('Article introuvable');
 
+        // ✅ FIX : l'auteur peut être un objet {id, username, email...} ou une string
+        const rawAuthor = articleData.author;
+        const authorName = rawAuthor
+          ? typeof rawAuthor === 'object'
+            ? rawAuthor.username || rawAuthor.email || rawAuthor.name || 'Rédaction'
+            : String(rawAuthor)
+          : null;
+
+        // ✅ FIX : category et section peuvent aussi être des objets
+        const categoryName = articleData.category
+          ? typeof articleData.category === 'object'
+            ? articleData.category.name || 'Général'
+            : String(articleData.category)
+          : 'Général';
+
+        const sectionName = articleData.section
+          ? typeof articleData.section === 'object'
+            ? articleData.section.name || 'Général'
+            : String(articleData.section)
+          : 'Général';
+
         let imageUrl = articleData.image_url;
         if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('//')) {
           imageUrl = `${apiUrl}${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
@@ -57,7 +78,16 @@ const ArticleDetailPage = () => {
           imageUrl = `${apiUrl}/api/placeholder/1200/600?text=${encodeURIComponent(articleData.title || 'Article')}&color=1d4ed8`;
         }
 
-        setArticle({ ...articleData, image_url: imageUrl });
+        setArticle({
+          ...articleData,
+          image_url: imageUrl,
+          author: authorName,
+          category: { name: categoryName },
+          section: {
+            id: typeof articleData.section === 'object' ? articleData.section?.id : null,
+            name: sectionName,
+          },
+        });
 
         // Articles similaires
         try {

@@ -18,9 +18,13 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
-  padding-top: 180px;
-  /* Espace pour top bar + logo + flash info + navbar */
+  padding-top: 0;
   transition: padding-top 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.admin-page {
+  padding-top: 0 !important;
+  background: #f3f4f6;
 }
 
 /* Classe pour ajuster quand la navbar est cachée */
@@ -32,7 +36,7 @@ body {
 /* Optimisations pour mobile */
 @media (max-width: 768px) {
   body {
-    padding-top: 160px;
+    padding-top: 0;
     transition: padding-top 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 

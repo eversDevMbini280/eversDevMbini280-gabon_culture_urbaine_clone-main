@@ -2,12 +2,136 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, RefreshCw, X, Check, AlertTriangle } from 'lucide-react';
 
+const styles = `
+  .act-modal {
+    background: #0f0f13;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 18px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  .act-modal-header {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+  }
+  .act-modal-header.alt { background: linear-gradient(135deg, #4f46e5, #4338ca); }
+  .act-modal-header.danger { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+  .act-modal-body { padding: 24px; }
+  .act-label {
+    display:block; font-size:0.7rem; font-weight:600;
+    color:rgba(255,255,255,0.45); letter-spacing:0.08em;
+    text-transform:uppercase; margin-bottom:8px;
+  }
+  .act-input, .act-textarea, .act-select {
+    width:100%;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px; padding:12px 14px;
+    font-size:0.875rem; font-family:inherit; color:#f0f0f5;
+    outline:none; transition:border-color 0.2s,background 0.2s,box-shadow 0.2s;
+  }
+  .act-input::placeholder, .act-textarea::placeholder { color:rgba(255,255,255,0.25); }
+  .act-input:focus, .act-textarea:focus, .act-select:focus {
+    border-color:rgba(59,130,246,0.6);
+    background:rgba(59,130,246,0.06);
+    box-shadow:0 0 0 3px rgba(59,130,246,0.12);
+  }
+  .act-select option { background:#1a1a24; color:#f0f0f5; }
+  .act-textarea { resize: vertical; min-height: 100px; }
+  .act-actions {
+    background: rgba(255,255,255,0.02);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 16px 24px;
+    display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap;
+  }
+  .act-btn-ghost {
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:10px 18px; border-radius:12px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    color:rgba(255,255,255,0.7); font-size:0.875rem; font-weight:600;
+    transition:all 0.2s;
+  }
+  .act-btn-ghost:hover { background:rgba(255,255,255,0.1); color:#fff; }
+  .act-btn-primary {
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:10px 20px; border-radius:12px; border:none;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    color:#fff; font-size:0.875rem; font-weight:700; letter-spacing:0.02em;
+    box-shadow:0 4px 20px rgba(59,130,246,0.35); transition:all 0.2s;
+  }
+  .act-btn-primary:hover { transform: translateY(-1px); box-shadow:0 8px 28px rgba(59,130,246,0.5); }
+  .act-btn-danger {
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:10px 20px; border-radius:12px; border:none;
+    background:linear-gradient(135deg,#ef4444,#dc2626);
+    color:#fff; font-size:0.875rem; font-weight:700; letter-spacing:0.02em;
+    box-shadow:0 4px 20px rgba(239,68,68,0.35); transition:all 0.2s;
+  }
+  .act-btn-danger:hover { transform: translateY(-1px); box-shadow:0 8px 28px rgba(239,68,68,0.5); }
+  .act-alert {
+    margin-bottom: 16px; padding: 12px 16px;
+    border-radius: 10px; font-size: 0.875rem;
+    border: 1px solid;
+  }
+  .act-alert.error { background: rgba(239,68,68,0.1); color: #fca5a5; border-color: rgba(239,68,68,0.3); }
+  .act-alert.success { background: rgba(34,197,94,0.12); color: #86efac; border-color: rgba(34,197,94,0.3); }
+  .act-alert.warn { background: rgba(234,179,8,0.12); color: #facc15; border-color: rgba(234,179,8,0.3); }
+
+  .act-list-shell {
+    background:#0f0f13;
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:20px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.45);
+    overflow:hidden;
+  }
+  .act-list-header {
+    padding:18px 20px;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;
+  }
+  .act-search {
+    width:100%; max-width:360px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px; padding:11px 14px;
+    font-size:0.875rem; color:#f0f0f5; outline:none;
+  }
+  .act-search::placeholder { color:rgba(255,255,255,0.25); }
+  .act-table { width:100%; border-collapse:collapse; }
+  .act-table thead th {
+    text-align:left; font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase;
+    color:rgba(255,255,255,0.35); padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .act-table tbody td {
+    padding:12px 16px; font-size:0.85rem; color:rgba(255,255,255,0.7);
+    border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .act-table tbody tr:hover { background:rgba(255,255,255,0.03); }
+  .act-status {
+    display:inline-flex; align-items:center; padding:3px 10px; border-radius:999px;
+    font-size:0.72rem; font-weight:600; border:1px solid;
+  }
+  .act-status.published { background:rgba(34,197,94,0.12); color:#4ade80; border-color:rgba(34,197,94,0.25); }
+  .act-status.draft { background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.4); border-color:rgba(255,255,255,0.1); }
+  .act-status.pending { background:rgba(234,179,8,0.12); color:#facc15; border-color:rgba(234,179,8,0.25); }
+  .act-row-actions { display:flex; gap:8px; justify-content:flex-end; }
+  .act-row-btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:30px; height:30px; border-radius:8px;
+    border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03);
+    color:rgba(255,255,255,0.45); transition:all 0.15s;
+  }
+  .act-row-btn:hover { background:rgba(255,255,255,0.08); color:#fff; }
+  .act-row-btn.edit:hover { background:rgba(99,102,241,0.15); color:#a5b4fc; border-color:rgba(99,102,241,0.35); }
+  .act-row-btn.del:hover { background:rgba(239,68,68,0.15); color:#fca5a5; border-color:rgba(239,68,68,0.35); }
+`;
+
 const Actualite = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000" }) => {
   const [actualites, setActualites] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedActualite, setSelectedActualite] = useState(null);
@@ -119,8 +243,8 @@ const Actualite = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localho
       await fetchActualites();
       setFormSuccess(`Actualite ${isEditModalOpen ? 'updated' : 'added'} successfully!`);
       setFormData({ title: '', description: '', status: 'published' });
-      setIsModalOpen(false);
       setIsEditModalOpen(false);
+      setShowForm(false);
     } catch (err) {
       console.error(`Error ${isEditModalOpen ? 'updating' : 'adding'} actualite:`, err);
       setFormError(err.message || `Failed to ${isEditModalOpen ? 'update' : 'add'} actualite. Please try again.`);
@@ -165,6 +289,7 @@ const Actualite = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localho
       status: actualite.status || 'published'
     });
     setIsEditModalOpen(true);
+    setShowForm(true);
   };
 
   const openDeleteModal = (actualite) => {
@@ -180,13 +305,13 @@ const Actualite = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localho
   const renderStatusBadge = (status) => {
     let colorClass = '';
     switch (status) {
-      case 'published': colorClass = 'bg-green-100 text-green-800 border-green-200'; break;
-      case 'draft': colorClass = 'bg-gray-100 text-gray-800 border-gray-200'; break;
-      case 'pending': colorClass = 'bg-yellow-100 text-yellow-800 border-yellow-200'; break;
-      default: colorClass = 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'published': colorClass = 'published'; break;
+      case 'draft': colorClass = 'draft'; break;
+      case 'pending': colorClass = 'pending'; break;
+      default: colorClass = 'published';
     }
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colorClass}`}>
+      <span className={`act-status ${colorClass}`}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
@@ -194,36 +319,21 @@ const Actualite = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localho
 
   return (
     <>
+      <style>{styles}</style>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h3 className="text-lg font-medium text-gray-800">
-          Toutes les Actualités
-        </h3>
-        <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-2 sm:space-y-0 sm:space-x-2">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher par titre ou statut..."
-            className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
-          <div className="flex space-x-2">
-            <button
-              onClick={() => fetchActualites()}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-            >
-              <RefreshCw className="w-5 h-5 mr-2" />
-              Actualiser
-            </button>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              <span className="hidden sm:inline">Ajouter une actualité</span>
-              <span className="sm:hidden">Ajouter</span>
-            </button>
-          </div>
-        </div>
+        <h3 className="text-lg font-medium text-gray-800">Toutes les Actualités</h3>
+        <button
+          onClick={() => {
+            setFormData({ title: '', description: '', status: 'published' });
+            setSelectedActualite(null);
+            setIsEditModalOpen(false);
+            setShowForm(true);
+          }}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          Ajouter une actualité
+        </button>
       </div>
 
       {error && (
@@ -239,65 +349,73 @@ const Actualite = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localho
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="act-list-shell">
+        <div className="act-list-header">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Rechercher par titre ou statut..."
+            className="act-search"
+          />
+          <button
+            onClick={() => fetchActualites()}
+            className="inline-flex items-center px-3 py-2 bg-white/10 text-white/70 rounded-lg hover:bg-white/20 transition-colors text-sm"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Actualiser
+          </button>
+        </div>
         {isLoading ? (
-          <div className="p-12 flex flex-col items-center justify-center">
-            <RefreshCw className="w-10 h-10 text-blue-500 animate-spin mb-4" />
-            <p className="text-gray-500">Chargement des actualités...</p>
+          <div className="p-12 flex flex-col items-center justify-center text-gray-400">
+            <RefreshCw className="w-10 h-10 text-blue-400 animate-spin mb-4" />
+            <p>Chargement des actualités...</p>
           </div>
         ) : filteredActualites.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="act-table">
+              <thead>
                 <tr>
-                  <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Titre
-                  </th>
-                  <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Statut
-                  </th>
-                  <th scope="col" className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th>Titre</th>
+                  <th>Statut</th>
+                  <th className="hidden sm:table-cell">Date</th>
+                  <th className="text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {filteredActualites.map((actualite) => (
-                  <tr key={actualite.id} className="hover:bg-gray-50">
-                    <td className="px-3 sm:px-6 py-4">
+                  <tr key={actualite.id}>
+                    <td>
                       <div className="flex items-center">
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium text-gray-900 truncate">{actualite.title}</div>
-                          <div className="text-sm text-gray-500 line-clamp-2 sm:line-clamp-1">{actualite.description}</div>
-                          <div className="sm:hidden text-xs text-gray-400 mt-1">
+                          <div className="text-sm font-medium text-gray-100 truncate">{actualite.title}</div>
+                          <div className="text-sm text-gray-400 line-clamp-2 sm:line-clamp-1">{actualite.description}</div>
+                          <div className="sm:hidden text-xs text-gray-500 mt-1">
                             {new Date(actualite.created_at).toLocaleDateString('fr-FR')}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                    <td className="whitespace-nowrap">
                       {renderStatusBadge(actualite.status)}
                     </td>
-                    <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                    <td className="hidden sm:table-cell whitespace-nowrap">
+                      <div className="text-sm text-gray-300">
                         {new Date(actualite.created_at).toLocaleDateString('fr-FR')}
                       </div>
                     </td>
-                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
+                    <td className="whitespace-nowrap text-right text-sm font-medium">
+                      <div className="act-row-actions">
                         <button
                           onClick={() => openEditModal(actualite)}
-                          className="text-indigo-600 hover:text-indigo-900 p-1"
+                          className="act-row-btn edit"
                           title="Modifier"
                         >
                           <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
                         <button
                           onClick={() => openDeleteModal(actualite)}
-                          className="text-red-600 hover:text-red-900 p-1"
+                          className="act-row-btn del"
                           title="Supprimer"
                         >
                           <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -322,219 +440,137 @@ const Actualite = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localho
         )}
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
-            <div className="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex justify-between items-center">
-              <h3 className="text-xl font-medium">Ajouter une nouvelle actualité</h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-white hover:text-gray-200 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="p-6">
-              {formError && (
-                <div className="mb-6 p-4 bg-red-100 text-red-800 rounded-lg flex items-start">
-                  <AlertTriangle className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>{formError}</span>
-                </div>
-              )}
-              {formSuccess && (
-                <div className="mb-6 p-4 bg-green-100 text-green-800 rounded-lg flex items-start">
-                  <Check className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>{formSuccess}</span>
-                </div>
-              )}
-              <form id="actualiteForm" onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Entrez le titre de l&apos;actualité"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-vertical"
-                      rows="4"
-                      placeholder="Description de l&apos;actualité"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      {statusOptions.map(option => (
-                        <option key={option.value} value={option.value} className="text-gray-900 bg-white">
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Annuler
-              </button>
-              <button
-                type="submit"
-                form="actualiteForm"
-                className="w-full sm:w-auto px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center justify-center"
-              >
-                <Check className="w-5 h-5 mr-2" />
-                Ajouter l&apos;actualité
-              </button>
-            </div>
+      {showForm && (
+        <div className="act-modal" style={{ marginTop: 24 }}>
+          <div className={`act-modal-header ${isEditModalOpen ? 'alt' : ''} px-6 py-4 flex justify-between items-center`}>
+            <h3 className="text-xl font-medium">
+              {isEditModalOpen ? "Modifier l'actualité" : "Ajouter une nouvelle actualité"}
+            </h3>
+            <button
+              onClick={() => {
+                setShowForm(false);
+                setIsEditModalOpen(false);
+                setFormData({ title: '', description: '', status: 'published' });
+              }}
+              className="text-white hover:text-gray-200 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
-        </div>
-      )}
-
-      {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
-            <div className="bg-indigo-600 text-white px-6 py-4 rounded-t-lg flex justify-between items-center">
-              <h3 className="text-xl font-medium">Modifier l&apos;actualité</h3>
-              <button
-                onClick={() => setIsEditModalOpen(false)}
-                className="text-white hover:text-gray-200 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="p-6">
-              {formError && (
-                <div className="mb-6 p-4 bg-red-100 text-red-800 rounded-lg flex items-start">
-                  <AlertTriangle className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>{formError}</span>
+          <div className="act-modal-body">
+            {formError && (
+              <div className="act-alert error flex items-start">
+                <AlertTriangle className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
+                <span>{formError}</span>
+              </div>
+            )}
+            {formSuccess && (
+              <div className="act-alert success flex items-start">
+                <Check className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
+                <span>{formSuccess}</span>
+              </div>
+            )}
+            <form id="actualiteInlineForm" onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  <label className="act-label">Titre *</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    className="act-input"
+                    placeholder="Entrez le titre de l'actualité"
+                    required
+                  />
                 </div>
-              )}
-              {formSuccess && (
-                <div className="mb-6 p-4 bg-green-100 text-green-800 rounded-lg flex items-start">
-                  <Check className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>{formSuccess}</span>
+                <div>
+                  <label className="act-label">Description *</label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    className="act-textarea"
+                    rows="4"
+                    placeholder="Description de l'actualité"
+                    required
+                  />
                 </div>
-              )}
-              <form id="editForm" onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="Entrez le titre de l&apos;actualité"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 resize-vertical"
-                      rows="4"
-                      placeholder="Description de l&apos;actualité"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    >
-                      {statusOptions.map(option => (
-                        <option key={option.value} value={option.value} className="text-gray-900 bg-white">
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div>
+                  <label className="act-label">Statut</label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    className="act-select"
+                  >
+                    {statusOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </form>
-            </div>
-            <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
-              <button
-                type="button"
-                onClick={() => setIsEditModalOpen(false)}
-                className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Annuler
-              </button>
-              <button
-                type="submit"
-                form="editForm"
-                className="w-full sm:w-auto px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center justify-center"
-              >
-                <Edit className="w-5 h-5 mr-2" />
-                Mettre à jour
-              </button>
-            </div>
+              </div>
+            </form>
+          </div>
+          <div className="act-actions">
+            <button
+              type="button"
+              onClick={() => {
+                setShowForm(false);
+                setIsEditModalOpen(false);
+                setFormData({ title: '', description: '', status: 'published' });
+              }}
+              className="act-btn-ghost"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              form="actualiteInlineForm"
+              className="act-btn-primary"
+            >
+              <Check className="w-5 h-5 mr-2" />
+              {isEditModalOpen ? 'Mettre à jour' : "Ajouter l'actualité"}
+            </button>
           </div>
         </div>
       )}
 
       {isDeleteModalOpen && selectedActualite && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
-            <div className="bg-red-600 text-white px-6 py-4 flex justify-between items-center">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md backdrop-saturate-150 flex items-center justify-center z-50 p-4">
+          <div className="act-modal w-full max-w-md overflow-hidden">
+            <div className="act-modal-header danger px-6 py-4 flex justify-between items-center">
               <h3 className="text-xl font-semibold">Confirmer la suppression</h3>
               <button onClick={() => setIsDeleteModalOpen(false)} className="text-white hover:text-gray-200">
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <div className="p-6">
+            <div className="act-modal-body">
               <div className="flex justify-center mb-6">
-                <AlertTriangle className="w-16 h-16 text-red-600" />
+                <AlertTriangle className="w-16 h-16 text-red-400" />
               </div>
-              <p className="text-center text-lg font-semibold mb-2 text-gray-900">
+              <p className="text-center text-lg font-semibold mb-2 text-gray-100">
                 Êtes-vous sûr de vouloir supprimer cette actualité ?
               </p>
-              <p className="text-center text-gray-600 mb-4">
+              <p className="text-center text-gray-400 mb-4">
                 <strong>{selectedActualite.title}</strong>
               </p>
-              <p className="text-sm text-center text-gray-400 mb-4">
+              <p className="text-sm text-center text-gray-500 mb-4">
                 Cette action sera irréversible.
               </p>
             </div>
-            <div className="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="act-actions">
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                className="act-btn-ghost"
               >
                 Annuler
               </button>
               <button
                 onClick={handleDeleteActualite}
-                className="w-full sm:w-auto px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 flex items-center justify-center"
+                className="act-btn-danger"
               >
                 <Trash2 className="w-5 h-5 mr-2" />
                 Supprimer

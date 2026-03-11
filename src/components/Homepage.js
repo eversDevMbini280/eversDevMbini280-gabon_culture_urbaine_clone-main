@@ -6,6 +6,18 @@ import Link from 'next/link';
 import Image from 'next/image';
 import AdBanner from '@/components/AdBanner';
 
+// Mapping section_id → route (à adapter selon ton backend)
+const SECTION_ID_TO_PATH = {
+  1: 'alaune',
+  2: 'buzz',
+  3: 'afrotcham',
+  4: 'rap',
+  5: 'sport',
+  6: 'comedy',
+  7: 'cinema',
+  8: 'stories',
+};
+
 const HomePage = () => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://gabon-culture-urbaine-1.onrender.com';
 
@@ -202,6 +214,8 @@ const HomePage = () => {
               image: imageUrl,
               category: isActualite ? 'Actualité' : (item.category?.name || 'Général'),
               section: isActualite ? 'Latest News' : (item.section?.name || 'General'),
+              // ✅ FIX: on conserve le section_id brut pour le routing
+              section_id: item.section?.id || item.section_id || null,
               views: isActualite ? '0 vues' : (item.views ? `${parseInt(item.views).toLocaleString()} vues` : '0 vues'),
               date: new Date(item.created_at).toLocaleDateString('fr-FR', {
                 year: 'numeric', month: 'long', day: 'numeric',
@@ -270,16 +284,16 @@ const HomePage = () => {
         };
 
         setContent({
-          alaune: processItems((alauneData?.length ? alauneData : genericPublished), false, false, false, false, false, false, false, true),
-          buzz: processItems((buzzData?.length ? buzzData : buzzFallback), false, false, false, false, false, false, true),
-          latestNews: processItems(latestNewsData, false, false, false, false, false, false, false, false, true),
-          afroTcham: processItems((afroTchamData?.length ? afroTchamData : afroFallback), false, false, false, false, false, true),
-          rap: processItems((rapData?.length ? rapData : rapFallback), false, false, false, false, true),
-          sport: processItems((sportData?.length ? sportData : sportFallback), false, false, false, true),
-          comedie: processItems((comedieData?.length ? comedieData : comedyFallback), false, false, true),
-          cinema: processItems((cinemaData?.length ? cinemaData : cinemaFallback), false, true),
-          mostread: processItems(mostreadData, true, false, false, false, false, false, false, false),
-          story: processItems(storyData, false, true, false, false, false, false, false, false),
+          alaune: processItems((alauneData?.length ? alauneData : genericPublished), false, false, false, false, false, false, false, false, true),
+          buzz: processItems((buzzData?.length ? buzzData : buzzFallback), false, false, false, false, false, false, false, true),
+          latestNews: processItems(latestNewsData, false, false, false, false, false, false, false, false, false, true),
+          afroTcham: processItems((afroTchamData?.length ? afroTchamData : afroFallback), false, false, false, false, false, false, true),
+          rap: processItems((rapData?.length ? rapData : rapFallback), false, false, false, false, false, true),
+          sport: processItems((sportData?.length ? sportData : sportFallback), false, false, false, false, true),
+          comedie: processItems((comedieData?.length ? comedieData : comedyFallback), false, false, false, true),
+          cinema: processItems((cinemaData?.length ? cinemaData : cinemaFallback), false, false, true),
+          mostread: processItems(mostreadData, true),
+          story: processItems(storyData, false, true),
           latestPublished: processItems(genericPublished),
           directTVVideo: processDirectTvVideo(directTvData),
           sections,
@@ -381,24 +395,8 @@ const HomePage = () => {
     }
   };
 
-  const getArticleDetailPath = (item) => {
-    const category = (item.category || '').toLowerCase();
-    const section = (item.section || '').toLowerCase();
-
-    if (item.isStory) return `/stories/${item.id}`;
-    if (item.isVideoActual) return `/videoactual/${item.id}`;
-    if (item.isEventActual) return `/eventactual/${item.id}`;
-    if (item.isAlauneActual) return `/alauneactual/${item.id}`;
-    if (item.isBuzz || category.includes('buzz') || section.includes('buzz')) return `/buzz/${item.id}`;
-    if (item.isAfroTcham || category.includes('afrotcham')) return `/afrotcham/${item.id}`;
-    if (item.isRap || category.includes('rap')) return `/rap/${item.id}`;
-    if (item.isSport || category.includes('sport')) return `/sport/${item.id}`;
-    if (item.isComedy || category.includes('comédie') || category.includes('comedie') || category.includes('comedy')) return `/comedy/${item.id}`;
-    if (item.isCinema || category.includes('cinéma') || category.includes('cinema')) return `/cinema/${item.id}`;
-    if (item.Mostread) return `/mostread/${item.id}`;
-    if (item.isAlaune) return `/alaune/${item.id}`;
-    return `/alaune/${item.id}`;
-  };
+  // ✅ FIX PRINCIPAL : routing intelligent basé sur section_id + flags + category + section name
+  const getArticleDetailPath = (item) => `/article/${item.id}`;
 
   if (content.loading) {
     return (
@@ -449,7 +447,8 @@ const HomePage = () => {
           {content.latestPublished.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {content.latestPublished.map((item) => (
-                <Link key={`latest-${item.id}`} href={getArticleDetailPath(item)}>
+                // ✅ FIX : utilise getArticleDetailPath au lieu d'un chemin hardcodé
+                <Link key={`latest-${item.id}`} href={`/article/${item.id}`}>
                   <div className="bg-white/10 hover:bg-white/15 transition rounded-lg p-4 h-full">
                     <p className="text-cyan-300 text-xs mb-2">{item.category}</p>
                     <h3 className="text-white font-semibold line-clamp-2 mb-2">{item.title}</h3>
@@ -487,7 +486,7 @@ const HomePage = () => {
               >
                 {content.alaune.map((item) => (
                   <motion.div key={item.id} className="flex-none w-[85%] pr-4 snap-start md:w-1/3 lg:w-1/4">
-                    <Link href={`/alaune/${item.id}`}>
+                    <Link href={`/article/${item.id}`}>
                       <div className="group cursor-pointer relative rounded-xl overflow-hidden h-full">
                         <div className="aspect-[3/4] relative">
                           <Image
@@ -559,7 +558,7 @@ const HomePage = () => {
                     className="flex-none w-[85%] pr-4 snap-start md:w-1/3 lg:w-1/4"
                     style={{ scrollSnapAlign: 'start' }}
                   >
-                    <Link href={`/buzz/${item.id}`}>
+                    <Link href={`/article/${item.id}`}>
                       <div className="group cursor-pointer relative rounded-xl overflow-hidden h-full">
                         <div className="aspect-[3/4] relative">
                           <Image
@@ -640,7 +639,7 @@ const HomePage = () => {
                     className="flex-none w-[85%] pr-4 snap-start md:w-1/3 lg:w-1/4"
                     style={{ scrollSnapAlign: 'start' }}
                   >
-                    <Link href={`/afrotcham/${item.id}`}>
+                    <Link href={`/article/${item.id}`}>
                       <div className="group cursor-pointer relative rounded-xl overflow-hidden h-full">
                         <div className="aspect-[3/4] relative">
                           <Image
@@ -721,7 +720,7 @@ const HomePage = () => {
                     className="flex-none w-[85%] pr-4 snap-start md:w-1/3 lg:w-1/4"
                     style={{ scrollSnapAlign: 'start' }}
                   >
-                    <Link href={`/rap/${item.id}`}>
+                    <Link href={`/article/${item.id}`}>
                       <div className="group cursor-pointer relative rounded-xl overflow-hidden h-full">
                         <div className="aspect-[3/4] relative">
                           <Image
@@ -804,7 +803,7 @@ const HomePage = () => {
                       style={{ scrollSnapAlign: 'start' }}
                       whileHover={{ scale: 1.02 }}
                     >
-                      <Link href={`/sport/${item.id}`}>
+                      <Link href={`/article/${item.id}`}>
                         <div className="group cursor-pointer relative rounded-xl overflow-hidden h-full">
                           <div className="aspect-[3/4] relative">
                             <Image
@@ -894,7 +893,7 @@ const HomePage = () => {
                       style={{ scrollSnapAlign: 'start' }}
                       whileHover={{ scale: 1.02 }}
                     >
-                      <Link href={`/comedy/${item.id}`}>
+                      <Link href={`/article/${item.id}`}>
                         <div className="group cursor-pointer relative rounded-xl overflow-hidden h-full">
                           <div className="aspect-[3/4] relative">
                             <Image
@@ -984,7 +983,7 @@ const HomePage = () => {
                       style={{ scrollSnapAlign: 'start' }}
                       whileHover={{ scale: 1.02 }}
                     >
-                      <Link href={`/cinema/${item.id}`}>
+                      <Link href={`/article/${item.id}`}>
                         <div className="group cursor-pointer relative rounded-xl overflow-hidden h-full">
                           <div className="aspect-[3/4] relative">
                             <Image

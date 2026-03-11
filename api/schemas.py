@@ -3,6 +3,8 @@ from typing import Optional, List
 from datetime import datetime, date
 from enum import Enum
 import enum
+import re
+import unicodedata
 
 class ArticleStatus(str, Enum):
     draft = "draft"
@@ -89,16 +91,38 @@ class CategoryResponse(CategoryBase):
         from_attributes = True
 # ────────────────────────────────────────────────────────────────────────────
 
+def generate_slug(name: str) -> str:
+    nfkd = unicodedata.normalize('NFKD', name)
+    slug = ''.join(c for c in nfkd if not unicodedata.combining(c))
+    slug = slug.lower().strip()
+    slug = re.sub(r'[^a-z0-9\s-]', '', slug)
+    slug = re.sub(r'[\s]+', '-', slug)
+    return slug
+
 class SectionBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
+    slug: str = Field(..., min_length=1, max_length=50)
     description: Optional[str] = Field(None, max_length=500)
 
 class SectionCreate(SectionBase):
-    pass
+    slug: Optional[str] = Field(None, min_length=1, max_length=50)
+
+    @validator('slug', always=True, pre=True)
+    def set_slug_from_name(cls, v, values):
+        if not v and 'name' in values and values['name']:
+            return generate_slug(values['name'])
+        return v
 
 class SectionUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
+    slug: Optional[str] = Field(None, min_length=1, max_length=50)
     description: Optional[str] = Field(None, max_length=500)
+
+    @validator('slug', always=True, pre=True)
+    def set_slug_from_name(cls, v, values):
+        if not v and 'name' in values and values['name']:
+            return generate_slug(values['name'])
+        return v
 
 class SectionResponse(SectionBase):
     id: int

@@ -44,6 +44,10 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
   const [imagePreview, setImagePreview] = useState(null);
   const [imageError, setImageError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showTeamForm, setShowTeamForm] = useState(false);
+  const [showMilestoneForm, setShowMilestoneForm] = useState(false);
+  const [showStatForm, setShowStatForm] = useState(false);
+  const [showValueForm, setShowValueForm] = useState(false);
   const aproposApiUrl = `${apiUrl}/apropos`;
   const staticUrl = apiUrl;
   const MAX_FILE_SIZE = 2 * 1024 * 1024;
@@ -428,6 +432,10 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
     } else {
       setFormData((prev) => ({ ...prev, [section]: item }));
     }
+    if (section === 'teamMember') setShowTeamForm(true);
+    if (section === 'milestone') setShowMilestoneForm(true);
+    if (section === 'stat') setShowStatForm(true);
+    if (section === 'value') setShowValueForm(true);
   };
 
   const MobileScrollIndicator = ({ containerId, light = false }) => (
@@ -673,7 +681,16 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </motion.div>
             <h2 className="text-3xl font-bold text-white">Gérer l'Équipe</h2>
           </motion.div>
-          <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={() => setShowTeamForm((v) => !v)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              {showTeamForm ? 'Fermer le formulaire' : 'Ajouter un membre'}
+            </button>
+          </div>
+          {showTeamForm && (
+            <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <form onSubmit={(e) => handleSubmit(e, 'teamMember', 'team-members')}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -725,6 +742,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
               </div>
             </form>
           </motion.div>
+          )}
           <div className="relative">
             <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:block">
               <button className="p-2 bg-blue-600 text-white rounded-full shadow-lg" onClick={() => handleScroll('team-scroll-container', -1)} aria-label="Précédent">
@@ -778,7 +796,16 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </motion.div>
             <h2 className="text-3xl font-bold text-white">Gérer les Jalons</h2>
           </motion.div>
-          <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={() => setShowMilestoneForm((v) => !v)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              {showMilestoneForm ? 'Fermer le formulaire' : 'Ajouter un jalon'}
+            </button>
+          </div>
+          {showMilestoneForm && (
+            <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <form onSubmit={(e) => handleSubmit(e, 'milestone', 'milestones')}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -822,6 +849,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
               </div>
             </form>
           </motion.div>
+          )}
           <div className="relative">
             <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:block">
               <button className="p-2 bg-blue-600 text-white rounded-full shadow-lg" onClick={() => handleScroll('milestone-scroll-container', -1)} aria-label="Précédent">
@@ -866,7 +894,16 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </motion.div>
             <h2 className="text-3xl font-bold text-white">Gérer les Statistiques</h2>
           </motion.div>
-          <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={() => setShowStatForm((v) => !v)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              {showStatForm ? 'Fermer le formulaire' : 'Ajouter une statistique'}
+            </button>
+          </div>
+          {showStatForm && (
+            <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <form onSubmit={(e) => handleSubmit(e, 'stat', 'stats')}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -907,6 +944,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
               </div>
             </form>
           </motion.div>
+          )}
           <div className="relative">
             <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:block">
               <button className="p-2 bg-blue-600 text-white rounded-full shadow-lg" onClick={() => handleScroll('stats-scroll-container', -1)} aria-label="Précédent">
@@ -953,7 +991,16 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </motion.div>
             <h2 className="text-3xl font-bold text-white">Gérer les Valeurs</h2>
           </motion.div>
-          <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={() => setShowValueForm((v) => !v)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              {showValueForm ? 'Fermer le formulaire' : 'Ajouter une valeur'}
+            </button>
+          </div>
+          {showValueForm && (
+            <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <form onSubmit={(e) => handleSubmit(e, 'value', 'values')}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -1002,6 +1049,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
               </div>
             </form>
           </motion.div>
+          )}
           <div className="relative">
             <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:block">
               <button className="p-2 bg-blue-600 text-white rounded-full shadow-lg" onClick={() => handleScroll('values-scroll-container', -1)} aria-label="Précédent">

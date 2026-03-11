@@ -1,5 +1,6 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import {
   Plus,
   Edit,
@@ -39,12 +40,7 @@ const Images = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:
     file: null,
   });
 
-  // Fetch advertisements
-  useEffect(() => {
-    fetchData();
-  }, [apiUrl]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -74,7 +70,12 @@ const Images = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [apiUrl]);
+
+  // Fetch advertisements
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Filter advertisements based on search query
   const filteredAdvertisements = advertisements.filter(
@@ -86,12 +87,9 @@ const Images = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:
   );
 
   // Handle image errors
-  const handleImageError = (e, itemId, placeholderText, size = { width: 40, height: 40 }) => {
+  const handleImageError = (itemId) => {
     if (!failedImages.has(itemId)) {
       setFailedImages((prev) => new Set(prev).add(itemId));
-      e.target.src = FALLBACK_IMAGE;
-      e.target.className = `${e.target.className} object-contain bg-gray-200`;
-      e.target.loading = 'lazy';
     }
   };
 
@@ -570,12 +568,21 @@ const Images = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10 rounded overflow-hidden bg-gray-100">
-                          <img
-                            src={ad.image_url?.startsWith('http') ? ad.image_url : `${apiUrl}${ad.image_url}`}
+                          <Image
+                            src={
+                              failedImages.has(ad.id)
+                                ? FALLBACK_IMAGE
+                                : ad.image_url?.startsWith('http')
+                                  ? ad.image_url
+                                  : `${apiUrl}${ad.image_url}`
+                            }
                             alt={ad.title}
+                            width={40}
+                            height={40}
                             className="w-full h-full object-cover"
-                            onError={(e) => handleImageError(e, ad.id, ad.title, { width: 40, height: 40 })}
+                            onError={() => handleImageError(ad.id)}
                             loading="lazy"
+                            unoptimized
                           />
                         </div>
                         <div className="ml-4">
@@ -706,6 +713,7 @@ const Images = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:
                 id="redirect-url"
                 value={redirectUrl}
                 onChange={(e) => setRedirectUrl(e.target.value)}
+                style = {{ color: 'black' }}
                 placeholder="https://example.com"
                 className="mt-1 block w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -718,6 +726,7 @@ const Images = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:
                 id="ad-status"
                 value={adStatus}
                 onChange={(e) => setAdStatus(e.target.value)}
+                style = {{ color: 'black' }}
                 className="mt-1 block w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="draft">Brouillon</option>
@@ -733,10 +742,11 @@ const Images = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:
                 id="ad-page"
                 value={adPage}
                 onChange={(e) => setAdPage(e.target.value)}
+                style = {{ color: 'black' }}
                 className="mt-1 block w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="all">Toutes les pages</option>
-                <option value="homepage">Page d'accueil</option>
+                <option value="homepage">Page d&apos;accueil</option>
                 <option value="actualite">Actualités</option>
                 <option value="culture_urbaine">Culture Urbaine</option>
                 <option value="arts_traditions">Arts & Traditions</option>
@@ -749,7 +759,7 @@ const Images = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:
           </div>
           <div className="border-2 border-dashed border-green-300 rounded-lg p-8 text-center bg-green-50">
             <Upload className="w-12 h-12 text-green-500 mx-auto mb-4" />
-            <h4 className="text-lg font-medium text-green-800 mb-2">Déposez vos publicités ici</h4>
+            <h4 style = {{ color: 'black' }} className="text-lg font-medium text-green-800 mb-2">Déposez vos publicités ici</h4>
             <p className="text-sm text-green-600 mb-4">ou</p>
             <input
               type="file"
@@ -771,7 +781,7 @@ const Images = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:
 
       {/* Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md backdrop-saturate-150 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
             <button
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -837,7 +847,7 @@ const Images = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:
                   className="mt-1 block w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">Toutes les pages</option>
-                  <option value="homepage">Page d'accueil</option>
+                  <option value="homepage">Page d&apos;accueil</option>
                   <option value="actualite">Actualités</option>
                   <option value="culture_urbaine">Culture Urbaine</option>
                   <option value="arts_traditions">Arts & Traditions</option>
