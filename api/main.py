@@ -88,6 +88,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, status, Requ
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
@@ -154,7 +155,7 @@ async def update_last_activity(request: Request, call_next):
                 db_user = db.merge(current_user)
                 
                 # Update last activity with UTC time
-                db_user.last_activity = datetime.utcnow() 
+                db_user.last_activity = func.now()
                 
                 # Commit the change
                 db.commit()

@@ -4,6 +4,7 @@ from fastapi import Depends, HTTPException, status, APIRouter, Response, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import os
@@ -185,7 +186,7 @@ async def login(
         )
     
     # Update last login time
-    user.last_login = datetime.utcnow()
+    user.last_login = func.now()
     db.commit()
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
