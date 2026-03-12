@@ -6,6 +6,80 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { Editor } from '@tinymce/tinymce-react';
 
+const adminStyles = `
+  .apropos-admin .admin-shell {
+    background: #0f0f13;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.45);
+    color: #f0f0f5;
+  }
+  .apropos-admin .admin-shell::before {
+    content:''; position:absolute; top:-100px; right:-100px;
+    width:300px; height:300px;
+    background:radial-gradient(circle,rgba(59,130,246,0.14) 0%,transparent 70%);
+    pointer-events:none;
+  }
+  .apropos-admin .admin-card {
+    background:#0f0f13;
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:18px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.4);
+    overflow:hidden;
+    color:#f0f0f5;
+  }
+  .apropos-admin .admin-card--compact { padding: 20px; }
+  .apropos-admin .admin-shell label {
+    display:block; font-size:0.7rem; font-weight:600;
+    color:rgba(255,255,255,0.45); letter-spacing:0.08em;
+    text-transform:uppercase; margin-bottom:8px;
+  }
+  .apropos-admin .admin-shell input,
+  .apropos-admin .admin-shell select,
+  .apropos-admin .admin-shell textarea {
+    width:100%;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px; padding:12px 14px;
+    font-size:0.875rem; font-family:inherit; color:#f0f0f5;
+    outline:none; transition:border-color 0.2s,background 0.2s,box-shadow 0.2s;
+  }
+  .apropos-admin .admin-shell input:focus,
+  .apropos-admin .admin-shell select:focus,
+  .apropos-admin .admin-shell textarea:focus {
+    border-color:rgba(59,130,246,0.6);
+    background:rgba(59,130,246,0.06);
+    box-shadow:0 0 0 3px rgba(59,130,246,0.12);
+  }
+  .apropos-admin .admin-shell .admin-muted { color:rgba(255,255,255,0.5); }
+  .apropos-admin .admin-shell .admin-cta {
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:10px 18px; border-radius:12px; border:none;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    color:#fff; font-size:0.875rem; font-weight:700; letter-spacing:0.02em;
+    box-shadow:0 4px 20px rgba(59,130,246,0.35); transition:all 0.2s;
+  }
+  .apropos-admin .admin-shell .text-gray-900,
+  .apropos-admin .admin-shell .text-gray-800,
+  .apropos-admin .admin-shell .text-gray-700,
+  .apropos-admin .admin-card .text-gray-900,
+  .apropos-admin .admin-card .text-gray-800,
+  .apropos-admin .admin-card .text-gray-700 {
+    color:#f0f0f5 !important;
+  }
+  .apropos-admin .admin-shell .text-gray-600,
+  .apropos-admin .admin-shell .text-gray-500,
+  .apropos-admin .admin-shell .text-gray-400,
+  .apropos-admin .admin-card .text-gray-600,
+  .apropos-admin .admin-card .text-gray-500,
+  .apropos-admin .admin-card .text-gray-400 {
+    color:rgba(255,255,255,0.6) !important;
+  }
+`;
+
 const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }) => {
   const teamScrollContainerRef = useRef(null);
   const milestoneScrollContainerRef = useRef(null);
@@ -44,10 +118,10 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
   const [imagePreview, setImagePreview] = useState(null);
   const [imageError, setImageError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showTeamForm, setShowTeamForm] = useState(false);
-  const [showMilestoneForm, setShowMilestoneForm] = useState(false);
-  const [showStatForm, setShowStatForm] = useState(false);
-  const [showValueForm, setShowValueForm] = useState(false);
+  const [showTeamForm, setShowTeamForm] = useState(true);
+  const [showMilestoneForm, setShowMilestoneForm] = useState(true);
+  const [showStatForm, setShowStatForm] = useState(true);
+  const [showValueForm, setShowValueForm] = useState(true);
   const aproposApiUrl = `${apiUrl}/apropos`;
   const staticUrl = apiUrl;
   const MAX_FILE_SIZE = 2 * 1024 * 1024;
@@ -483,7 +557,8 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
   }
 
   return (
-    <motion.main className="min-h-screen bg-blue-900" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+    <motion.main className="min-h-screen bg-blue-900 apropos-admin" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+      <style>{adminStyles}</style>
       <style jsx>{`
         @keyframes scrollIndicator { 0% { opacity: 0.7; transform: translateX(0); } 50% { opacity: 1; transform: translateX(10px); } 100% { opacity: 0.7; transform: translateX(0); } }
         .scroll-indicator { animation: scrollIndicator 1.5s ease-in-out infinite; }
@@ -556,7 +631,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </motion.div>
             <h2 className="text-3xl font-bold text-white">Gérer le Contenu À Propos</h2>
           </motion.div>
-          <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <motion.div className="admin-shell mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <form onSubmit={(e) => handleSubmit(e, 'aboutContent', 'about-content')}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -649,7 +724,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </form>
           </motion.div>
           {aboutContent && (
-            <motion.div className="bg-white rounded-xl shadow-lg p-6" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <motion.div className="admin-shell" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{aboutContent.history_title}</h3>
               <p className="text-gray-600 mb-2">{aboutContent.history_subtitle}</p>
               <div className="text-gray-600 mb-2" dangerouslySetInnerHTML={{ __html: aboutContent.history_text1 }} />
@@ -681,16 +756,8 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </motion.div>
             <h2 className="text-3xl font-bold text-white">Gérer l'Équipe</h2>
           </motion.div>
-          <div className="flex justify-center mb-8">
-            <button
-              onClick={() => setShowTeamForm((v) => !v)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              {showTeamForm ? 'Fermer le formulaire' : 'Ajouter un membre'}
-            </button>
-          </div>
           {showTeamForm && (
-            <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <motion.div className="admin-shell mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <form onSubmit={(e) => handleSubmit(e, 'teamMember', 'team-members')}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -757,7 +824,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             <div id="team-scroll-container" ref={teamScrollContainerRef} className="flex overflow-x-auto pb-6 custom-scrollbar snap-x snap-mandatory scroll-smooth">
               {teamMembers.map((member, index) => (
                 <motion.div key={member.id} className="flex-none w-full sm:w-1/2 lg:w-1/4 px-4 first:pl-0 last:pr-0 snap-start" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1, duration: 0.5 }}>
-                  <div className="bg-white rounded-xl overflow-hidden shadow-md h-full">
+                  <div className="admin-card">
                     <div className="relative w-full" style={{ aspectRatio: '2/3' }}>
                       <img
                         src={member.image_url ? `${staticUrl}${member.image_url}` : '/api/placeholder/400/600'}
@@ -796,16 +863,8 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </motion.div>
             <h2 className="text-3xl font-bold text-white">Gérer les Jalons</h2>
           </motion.div>
-          <div className="flex justify-center mb-8">
-            <button
-              onClick={() => setShowMilestoneForm((v) => !v)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              {showMilestoneForm ? 'Fermer le formulaire' : 'Ajouter un jalon'}
-            </button>
-          </div>
           {showMilestoneForm && (
-            <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <motion.div className="admin-shell mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <form onSubmit={(e) => handleSubmit(e, 'milestone', 'milestones')}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -864,7 +923,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             <div id="milestone-scroll-container" ref={milestoneScrollContainerRef} className="flex overflow-x-auto pb-6 custom-scrollbar snap-x snap-mandatory scroll-smooth">
               {milestones.map((milestone, index) => (
                 <motion.div key={milestone.id} className="flex-none w-full sm:w-1/2 lg:w-1/3 px-4 first:pl-0 last:pr-0 snap-start" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1, duration: 0.5 }}>
-                  <div className="bg-white rounded-xl overflow-hidden shadow-md h-full p-6">
+                  <div className="admin-card admin-card--compact">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">{milestone.year}</h3>
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">{milestone.title}</h4>
                     <div className="text-gray-600 text-sm" dangerouslySetInnerHTML={{ __html: milestone.description }} />
@@ -894,16 +953,8 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </motion.div>
             <h2 className="text-3xl font-bold text-white">Gérer les Statistiques</h2>
           </motion.div>
-          <div className="flex justify-center mb-8">
-            <button
-              onClick={() => setShowStatForm((v) => !v)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              {showStatForm ? 'Fermer le formulaire' : 'Ajouter une statistique'}
-            </button>
-          </div>
           {showStatForm && (
-            <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <motion.div className="admin-shell mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <form onSubmit={(e) => handleSubmit(e, 'stat', 'stats')}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -959,7 +1010,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             <div id="stats-scroll-container" ref={statsScrollContainerRef} className="flex overflow-x-auto pb-6 custom-scrollbar snap-x snap-mandatory scroll-smooth">
               {stats.map((stat, index) => (
                 <motion.div key={stat.id} className="flex-none w-full sm:w-1/2 lg:w-1/4 px-4 first:pl-0 last:pr-0 snap-start" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1, duration: 0.5 }}>
-                  <div className="bg-white rounded-xl overflow-hidden shadow-md h-full p-6">
+                  <div className="admin-card admin-card--compact">
                     <div className="flex items-center gap-2 mb-2">
                       {stat.icon_name && <span className="text-blue-600">{stat.icon_name}</span>}
                       <h3 className="text-2xl font-bold text-gray-900">{stat.number}</h3>
@@ -991,16 +1042,8 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </motion.div>
             <h2 className="text-3xl font-bold text-white">Gérer les Valeurs</h2>
           </motion.div>
-          <div className="flex justify-center mb-8">
-            <button
-              onClick={() => setShowValueForm((v) => !v)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              {showValueForm ? 'Fermer le formulaire' : 'Ajouter une valeur'}
-            </button>
-          </div>
           {showValueForm && (
-            <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <motion.div className="admin-shell mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <form onSubmit={(e) => handleSubmit(e, 'value', 'values')}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -1064,7 +1107,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             <div id="values-scroll-container" ref={valuesScrollContainerRef} className="flex overflow-x-auto pb-6 custom-scrollbar snap-x snap-mandatory scroll-smooth">
               {values.map((value, index) => (
                 <motion.div key={value.id} className="flex-none w-full sm:w-1/2 lg:w-1/3 px-4 first:pl-0 last:pr-0 snap-start" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1, duration: 0.5 }}>
-                  <div className="bg-white rounded-xl overflow-hidden shadow-md h-full p-6">
+                  <div className="admin-card admin-card--compact">
                     <div className="flex items-center gap-2 mb-2">
                       {value.icon_name && <span className="text-blue-600">{value.icon_name}</span>}
                       <h3 className="text-xl font-bold text-gray-900">{value.title}</h3>
@@ -1096,7 +1139,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </motion.div>
             <h2 className="text-3xl font-bold text-white">Gérer les Informations de Contact</h2>
           </motion.div>
-          <motion.div className="bg-white rounded-xl shadow-lg p-6 mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <motion.div className="admin-shell mb-8" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <form onSubmit={(e) => handleSubmit(e, 'contactInfo', 'contact-info')}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -1133,7 +1176,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
             </form>
           </motion.div>
           {contactInfo && (
-            <motion.div className="bg-white rounded-xl shadow-lg p-6" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <motion.div className="admin-shell" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{studios.title}</h3>
     <div className="w-full max-w-sm mx-auto mb-4" style={{ aspectRatio: '2/3' }}>
   <img

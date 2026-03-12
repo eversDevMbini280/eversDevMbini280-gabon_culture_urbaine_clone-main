@@ -16,6 +16,128 @@ import {
   Save
 } from 'lucide-react';
 
+const styles = `
+  .admin-shell {
+    background: #0f0f13;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.45);
+  }
+  .admin-shell::before {
+    content:''; position:absolute; top:-100px; right:-100px;
+    width:300px; height:300px;
+    background:radial-gradient(circle,rgba(59,130,246,0.14) 0%,transparent 70%);
+    pointer-events:none;
+  }
+  .admin-shell--compact { padding: 20px; }
+  .admin-shell--muted { background: rgba(255,255,255,0.04); }
+  .admin-title {
+    font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 6px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .admin-sub { font-size: 0.85rem; color: rgba(255,255,255,0.45); }
+  .admin-static-label {
+    display:block; font-size:0.7rem; font-weight:600;
+    color:rgba(255,255,255,0.45); letter-spacing:0.08em;
+    text-transform:uppercase; margin-bottom:8px;
+  }
+  .admin-input, .admin-textarea, .admin-select {
+    width:100%;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px; padding:12px 14px;
+    font-size:0.875rem; font-family:inherit; color:#f0f0f5;
+    outline:none; transition:border-color 0.2s,background 0.2s,box-shadow 0.2s;
+  }
+  .admin-input::placeholder, .admin-textarea::placeholder { color:rgba(255,255,255,0.25); }
+  .admin-input:focus, .admin-textarea:focus, .admin-select:focus {
+    border-color:rgba(59,130,246,0.6);
+    background:rgba(59,130,246,0.06);
+    box-shadow:0 0 0 3px rgba(59,130,246,0.12);
+  }
+  .admin-textarea { resize: vertical; min-height: 90px; }
+  .admin-btn-primary {
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:10px 18px; border-radius:12px; border:none;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    color:#fff; font-size:0.875rem; font-weight:700; letter-spacing:0.02em;
+    box-shadow:0 4px 20px rgba(59,130,246,0.35); transition:all 0.2s;
+  }
+  .admin-btn-primary:hover:not(:disabled){ transform:translateY(-1px); box-shadow:0 8px 28px rgba(59,130,246,0.5); }
+  .admin-btn-primary:disabled{ opacity:0.5; cursor:not-allowed; }
+  .admin-btn-ghost {
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:10px 16px; border-radius:12px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    color:rgba(255,255,255,0.7); font-size:0.875rem; font-weight:600;
+    transition:all 0.2s;
+  }
+  .admin-btn-ghost:hover { background:rgba(255,255,255,0.1); color:#fff; }
+  .admin-btn-danger {
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:10px 16px; border-radius:12px;
+    background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.25);
+    color:#fecaca; font-size:0.875rem; font-weight:600;
+    transition:all 0.2s;
+  }
+  .admin-toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .admin-table-shell {
+    background:#0f0f13;
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:20px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.45);
+    overflow:hidden;
+  }
+  .admin-table { width:100%; border-collapse:collapse; }
+  .admin-table thead th {
+    text-align:left; font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase;
+    color:rgba(255,255,255,0.35); padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .admin-table tbody td {
+    padding:12px 16px; font-size:0.85rem; color:rgba(255,255,255,0.7);
+    border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .admin-table tbody tr:hover { background:rgba(255,255,255,0.03); }
+  .admin-muted { color:rgba(255,255,255,0.5); }
+  .admin-badge {
+    display:inline-flex; align-items:center; padding:3px 8px; border-radius:999px;
+    font-size:0.7rem; font-weight:600; border:1px solid rgba(255,255,255,0.12);
+  }
+  .admin-badge--green { background:rgba(34,197,94,0.16); color:#86efac; border-color:rgba(34,197,94,0.35); }
+  .admin-badge--gray { background:rgba(148,163,184,0.16); color:#cbd5f5; border-color:rgba(148,163,184,0.35); }
+  .admin-badge--yellow { background:rgba(234,179,8,0.16); color:#fde68a; border-color:rgba(234,179,8,0.35); }
+  .admin-badge--blue { background:rgba(59,130,246,0.16); color:#bfdbfe; border-color:rgba(59,130,246,0.35); }
+  .admin-empty { padding:60px 24px; text-align:center; color:rgba(255,255,255,0.25); }
+  .admin-modal {
+    background:#0f0f13; border:1px solid rgba(255,255,255,0.08);
+    border-radius:20px; box-shadow:0 30px 60px rgba(0,0,0,0.45);
+    color:#f0f0f5; overflow:hidden;
+  }
+  .admin-modal-header {
+    padding:18px 20px; border-bottom:1px solid rgba(255,255,255,0.06);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .admin-modal-body { padding:20px; }
+  .admin-modal-footer { padding:16px 20px; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:flex-end; gap:12px; }
+  .admin-file-btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:8px 14px; border-radius:10px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    color:rgba(255,255,255,0.7); font-size:0.8rem; font-weight:600;
+    transition:all 0.2s; cursor:pointer;
+  }
+  .admin-file-btn:hover { background:rgba(255,255,255,0.12); color:#fff; }
+  .admin-message {
+    padding:12px 14px; border-radius:12px; font-size:0.85rem; border:1px solid transparent;
+    display:flex; align-items:center; gap:8px;
+  }
+  .admin-message--error { background:rgba(239,68,68,0.12); color:#fecaca; border-color:rgba(239,68,68,0.3); }
+  .admin-message--success { background:rgba(34,197,94,0.12); color:#bbf7d0; border-color:rgba(34,197,94,0.3); }
+`;
+
 const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000" }) => {
   const [videos, setVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -454,37 +576,38 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
     let colorClass = '';
     switch(status) {
       case 'published':
-        colorClass = 'bg-green-100 text-green-800 border-green-200';
+        colorClass = 'admin-badge--green';
         break;
       case 'draft':
-        colorClass = 'bg-gray-100 text-gray-800 border-gray-200';
+        colorClass = 'admin-badge--gray';
         break;
       case 'archived':
-        colorClass = 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        colorClass = 'admin-badge--yellow';
         break;
       default:
-        colorClass = 'bg-blue-100 text-blue-800 border-blue-200';
+        colorClass = 'admin-badge--blue';
     }
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colorClass}`}>
+      <span className={`admin-badge ${colorClass}`}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   };
 
   return (
-    <>
+    <div>
+      <style>{styles}</style>
       {/* Upcoming Programs Section */}
-      <div className="mb-6 bg-blue-50 rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-800 flex items-center">
-            <Calendar className="w-6 h-6 mr-2 text-blue-600" />
+      <div className="mb-6 admin-shell admin-shell--compact">
+        <div className="admin-toolbar">
+          <div className="admin-title">
+            <Calendar className="w-5 h-5 text-blue-400" />
             Programme à venir
-          </h3>
+          </div>
           {!isEditingUpcoming && (
             <button 
               onClick={() => setIsEditingUpcoming(true)}
-              className="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-sm"
+              className="admin-btn-ghost"
             >
               <Edit className="w-4 h-4 mr-1" />
               Modifier
@@ -495,7 +618,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
         {isEditingUpcoming ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="admin-static-label">
                 Titre du prochain programme
               </label>
               <input
@@ -503,14 +626,14 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                 value={upcomingProgram}
                 onChange={(e) => setUpcomingProgram(e.target.value)}
                 placeholder="Ex: Le Débat Urbain - Édition spéciale"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="admin-input"
               />
             </div>
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => setIsEditingUpcoming(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="admin-btn-ghost"
               >
                 Annuler
               </button>
@@ -518,7 +641,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                 type="button"
                 onClick={handleSaveUpcomingProgram}
                 disabled={isSavingUpcoming}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                className="admin-btn-primary"
               >
                 {isSavingUpcoming ? (
                   <>
@@ -535,31 +658,32 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg p-4 shadow-sm">
+          <div className="admin-shell admin-shell--compact admin-shell--muted">
             {upcomingProgram ? (
-              <p className="text-lg font-medium text-gray-800">{upcomingProgram}</p>
+              <p className="text-lg font-medium text-white">{upcomingProgram}</p>
             ) : (
-              <p className="text-gray-500 italic">Aucun programme à venir défini</p>
+              <p className="admin-muted italic">Aucun programme à venir défini</p>
             )}
           </div>
         )}
       </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-medium text-gray-800">
-          Toutes les Vidéos
-        </h3>
+      <div className="admin-toolbar">
+        <div>
+          <h3 className="admin-title">Toutes les Vidéos</h3>
+          <div className="admin-sub">Gérez les vidéos et les statuts de diffusion</div>
+        </div>
         <div className="flex space-x-2">
           <button 
             onClick={() => fetchVideos()}
-            className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+            className="admin-btn-ghost"
           >
             <RefreshCw className="w-5 h-5 mr-2" />
             Actualiser
           </button>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            className="admin-btn-primary"
           >
             <Plus className="w-5 h-5 mr-2" />
             Ajouter une vidéo
@@ -568,49 +692,49 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-800 rounded-lg">
+        <div className="mb-4 admin-message admin-message--error">
           {error}
         </div>
       )}
       
       {formSuccess && (
-        <div className="mb-4 p-4 bg-green-100 text-green-800 rounded-lg flex items-center">
+        <div className="mb-4 admin-message admin-message--success">
           <Check className="w-5 h-5 mr-2" />
           {formSuccess}
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="admin-table-shell">
         {isLoading ? (
           <div className="p-12 flex flex-col items-center justify-center">
-            <RefreshCw className="w-10 h-10 text-blue-500 animate-spin mb-4" />
-            <p className="text-gray-500">Chargement des vidéos...</p>
+            <RefreshCw className="w-10 h-10 text-blue-400 animate-spin mb-4" />
+            <p className="admin-muted">Chargement des vidéos...</p>
           </div>
         ) : filteredVideos.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="admin-table">
+              <thead>
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col">
                     Titre
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col">
                     Statut
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col">
                     Date/Heure
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {filteredVideos.map((video) => (
-                  <tr key={video.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={video.id}>
+                    <td>
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 rounded overflow-hidden bg-gray-100 flex items-center justify-center border">
+                        <div className="flex-shrink-0 h-10 w-10 rounded overflow-hidden bg-white/5 flex items-center justify-center border border-white/10">
                           {video.image_url ? (
                             <img 
                               src={`${apiUrl}${video.image_url}`} 
@@ -619,60 +743,60 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                               onError={handleImageError}
                             />
                           ) : (
-                            <Video className="text-red-500 w-5 h-5" />
+                            <Video className="text-red-300 w-5 h-5" />
                           )}
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{video.title}</div>
-                          <div className="text-sm text-gray-500 line-clamp-1">{video.description}</div>
+                          <div className="text-sm font-medium text-white">{video.title}</div>
+                          <div className="text-sm admin-muted line-clamp-1">{video.description}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td>
                       {renderStatusBadge(video.status)}
                       {video.is_featured && (
-                        <span className="ml-2 px-2 py-1 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                        <span className="ml-2 admin-badge admin-badge--blue">
                           Featured
                         </span>
                       )}
                       {video.is_live && (
-                        <span className="ml-2 px-2 py-1 text-xs font-semibold text-white bg-red-600 rounded-full">
+                        <span className="ml-2 admin-badge admin-badge--yellow">
                           LIVE
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                    <td>
+                      <div className="text-sm text-white">
                         {new Date(video.date).toLocaleDateString('fr-FR')}
                       </div>
-                      <div className="text-sm text-gray-500">{video.time}</div>
+                      <div className="text-sm admin-muted">{video.time}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td>
                       <div className="flex space-x-2">
                         <button 
                           onClick={() => handleSetFeatured(video.id)}
-                          className={`px-2 py-1 text-xs rounded ${video.is_featured ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
+                          className={`admin-badge ${video.is_featured ? 'admin-badge--green' : 'admin-badge--gray'}`}
                           title="Set as featured"
                         >
                           Featured
                         </button>
                         <button 
                           onClick={() => viewVideo(video)} 
-                          className="text-blue-600 hover:text-blue-900" 
+                          className="admin-btn-ghost" 
                           title="Voir"
                         >
                           <Eye className="w-5 h-5" />
                         </button>
                         <button 
                           onClick={() => openEditModal(video)} 
-                          className="text-indigo-600 hover:text-indigo-900" 
+                          className="admin-btn-ghost" 
                           title="Modifier"
                         >
                           <Edit className="w-5 h-5" />
                         </button>
                         <button 
                           onClick={() => openDeleteModal(video)} 
-                          className="text-red-600 hover:text-red-900" 
+                          className="admin-btn-danger" 
                           title="Supprimer"
                         >
                           <Trash2 className="w-5 h-5" />
@@ -685,10 +809,10 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
             </table>
           </div>
         ) : (
-          <div className="p-12 flex flex-col items-center justify-center text-gray-500">
-            <FilePlus className="w-16 h-16 text-gray-300 mb-4" />
+          <div className="admin-empty">
+            <FilePlus className="w-16 h-16 text-gray-500 mb-4" />
             <p className="mb-2">Aucune vidéo trouvée</p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm admin-muted">
               {searchQuery 
                 ? `Aucun résultat pour "${searchQuery}"`
                 : `Ajoutez des vidéos en cliquant sur le bouton "Ajouter une vidéo"`
@@ -701,29 +825,29 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
       {/* ADD VIDEO MODAL - SIMPLIFIED VERSION */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-md backdrop-saturate-150 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[600px] flex flex-col">
+          <div className="admin-modal w-full max-w-2xl max-h-[600px] flex flex-col">
             {/* Header */}
-            <div className="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex justify-between items-center">
-              <h3 className="text-xl font-medium">Ajouter une nouvelle vidéo</h3>
+            <div className="admin-modal-header">
+              <h3 className="text-lg font-semibold">Ajouter une nouvelle vidéo</h3>
               <button 
                 onClick={() => setIsModalOpen(false)} 
-                className="text-white hover:text-gray-200 transition-colors"
+                className="admin-btn-ghost"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
             
             {/* Content Area - Scrollable */}
-            <div className="p-6 overflow-y-auto" style={{height: "calc(100% - 130px)"}}>
+            <div className="admin-modal-body overflow-y-auto" style={{height: "calc(100% - 130px)"}}>
               {formError && (
-                <div className="mb-6 p-4 bg-red-100 text-red-800 rounded-lg flex items-center">
+                <div className="mb-6 admin-message admin-message--error">
                   <AlertTriangle className="w-5 h-5 mr-2 flex-shrink-0" />
                   <span>{formError}</span>
                 </div>
               )}
               
               {formSuccess && (
-                <div className="mb-6 p-4 bg-green-100 text-green-800 rounded-lg flex items-center">
+                <div className="mb-6 admin-message admin-message--success">
                   <Check className="w-5 h-5 mr-2 flex-shrink-0" />
                   <span>{formSuccess}</span>
                 </div>
@@ -734,25 +858,25 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                   {/* Left Column */}
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Programme *</label>
+                      <label className="admin-static-label">Programme *</label>
                       <input
                         type="text"
                         name="title"
                         value={formData.title}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="admin-input"
                         placeholder="Entrez le titre du programme"
                         required
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                      <label className="admin-static-label">Description *</label>
                       <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="admin-textarea"
                         rows="4"
                         placeholder="Description du programme"
                         required
@@ -760,7 +884,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                     </div>
                     
                     <div>
-                      <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="category_id" className="admin-static-label">
                         Catégorie *
                       </label>
                       <select
@@ -768,13 +892,13 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                         name="category_id"
                         value={formData.category_id}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+                        className="admin-select"
                         required
                         aria-label="Catégorie"
                       >
-                        <option value="" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">Sélectionner une catégorie</option>
+                        <option value="">Sélectionner une catégorie</option>
                         {categories.map((category) => (
-                          <option key={category.id} value={category.id} className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">
+                          <option key={category.id} value={category.id}>
                             {category.name}
                           </option>
                         ))}
@@ -786,49 +910,49 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Heure *</label>
+                        <label className="admin-static-label">Heure *</label>
                         <input
                           type="text"
                           name="time"
                           value={formData.time}
                           onChange={handleInputChange}
                           placeholder="10:30 ou 10:30-12:00"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          className="admin-input"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                        <label className="admin-static-label">Date *</label>
                         <input
                           type="date"
                           name="date"
                           value={formData.date}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          className="admin-input"
                           required
                         />
                       </div>
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Durée</label>
+                      <label className="admin-static-label">Durée</label>
                       <input
                         type="text"
                         name="duration"
                         value={formData.duration}
                         onChange={handleInputChange}
                         placeholder="1h30m"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="admin-input"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                      <label className="admin-static-label">Statut</label>
                       <select
                         name="status"
                         value={formData.status}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="admin-select"
                       >
                         {statusOptions.map(option => (
                           <option key={option.value} value={option.value}>{option.label}</option>
@@ -846,9 +970,9 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                           onChange={handleInputChange}
                           className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                         />
-                        <label htmlFor="is_live" className="ml-2 block text-sm text-gray-700">
-                          En direct
-                        </label>
+                      <label htmlFor="is_live" className="ml-2 block text-sm text-white">
+                        En direct
+                      </label>
                       </div>
                       <div className="flex items-center">
                         <input
@@ -859,9 +983,9 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                           onChange={handleInputChange}
                           className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                         />
-                        <label htmlFor="is_featured" className="ml-2 block text-sm text-gray-700">
-                          À l'antenne
-                        </label>
+                      <label htmlFor="is_featured" className="ml-2 block text-sm text-white">
+                        À l'antenne
+                      </label>
                       </div>
                     </div>
                   </div>
@@ -870,7 +994,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                 {/* File Upload Section */}
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
+                    <label className="admin-static-label">Image</label>
                     <div className="flex items-center">
                       <input
                         type="file"
@@ -881,18 +1005,18 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                       />
                       <label
                         htmlFor="image-upload"
-                        className="cursor-pointer px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        className="admin-file-btn"
                       >
                         Choisir une image
                       </label>
-                      <span className="ml-3 text-sm text-gray-500 truncate max-w-[200px]">
+                      <span className="ml-3 text-sm admin-muted truncate max-w-[200px]">
                         {imageFile ? imageFile.name : 'Aucun fichier choisi'}
                       </span>
                     </div>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Vidéo *</label>
+                    <label className="admin-static-label">Vidéo *</label>
                     <div className="flex items-center">
                       <input
                         type="file"
@@ -904,11 +1028,11 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                       />
                       <label
                         htmlFor="video-upload"
-                        className="cursor-pointer px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        className="admin-file-btn"
                       >
                         Choisir une vidéo
                       </label>
-                      <span className="ml-3 text-sm text-gray-500 truncate max-w-[200px]">
+                      <span className="ml-3 text-sm admin-muted truncate max-w-[200px]">
                         {videoFile ? videoFile.name : 'Aucun fichier choisi'}
                       </span>
                     </div>
@@ -918,11 +1042,11 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
             </div>
             
             {/* Footer - Fixed at bottom */}
-            <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-4 mt-auto">
+            <div className="admin-modal-footer mt-auto">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="admin-btn-ghost"
               >
                 Annuler
               </button>
@@ -930,7 +1054,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                 type="submit"
                 form="videoForm"
                 disabled={isUploading}
-                className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                className="admin-btn-primary"
               >
                 {isUploading ? (
                   <>
@@ -952,13 +1076,13 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
       {/* EDIT VIDEO MODAL - SIMPLIFIED VERSION */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-md backdrop-saturate-150 flex items-center justify-center z-50 p-4">
-         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[600px] flex flex-col">
+         <div className="admin-modal w-full max-w-2xl max-h-[600px] flex flex-col">
   {/* Header */}
-  <div className="bg-indigo-600 dark:bg-indigo-700 text-white px-6 py-4 rounded-t-lg flex justify-between items-center">
-    <h3 className="text-xl font-medium">Modifier la vidéo</h3>
+  <div className="admin-modal-header">
+    <h3 className="text-lg font-semibold">Modifier la vidéo</h3>
     <button 
       onClick={() => setIsEditModalOpen(false)} 
-      className="text-white hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      className="admin-btn-ghost"
       aria-label="Fermer la fenêtre de modification"
     >
       <X className="w-6 h-6" />
@@ -966,16 +1090,16 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
   </div>
   
   {/* Content Area - Scrollable */}
-  <div className="p-6 overflow-y-auto" style={{height: "calc(100% - 130px)"}}>
+  <div className="admin-modal-body overflow-y-auto" style={{height: "calc(100% - 130px)"}}>
     {formError && (
-      <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300 rounded-lg flex items-center">
+      <div className="mb-6 admin-message admin-message--error">
         <AlertTriangle className="w-5 h-5 mr-2 flex-shrink-0" />
         <span>{formError}</span>
       </div>
     )}
     
     {formSuccess && (
-      <div className="mb-6 p-4 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 rounded-lg flex items-center">
+      <div className="mb-6 admin-message admin-message--success">
         <Check className="w-5 h-5 mr-2 flex-shrink-0" />
         <span>{formSuccess}</span>
       </div>
@@ -986,14 +1110,14 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
         {/* Left Column */}
         <div className="space-y-6">
           <div>
-            <label htmlFor="edit-title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Programme *</label>
+            <label htmlFor="edit-title" className="admin-static-label">Programme *</label>
             <input
               type="text"
               id="edit-title"
               name="title"
               value={formData.title}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:border-gray-600"
+              className="admin-input"
               placeholder="Entrez le titre du programme"
               required
               aria-label="Titre du programme"
@@ -1001,13 +1125,13 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
           </div>
           
           <div>
-            <label htmlFor="edit-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description *</label>
+            <label htmlFor="edit-description" className="admin-static-label">Description *</label>
             <textarea
               id="edit-description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:border-gray-600 resize-vertical"
+              className="admin-textarea"
               rows="4"
               placeholder="Description du programme"
               required
@@ -1016,7 +1140,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
           </div>
           
           <div>
-            <label htmlFor="edit-category_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="edit-category_id" className="admin-static-label">
               Catégorie *
             </label>
             <select
@@ -1024,13 +1148,13 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
               name="category_id"
               value={formData.category_id}
               onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+              className="admin-select"
               required
               aria-label="Catégorie"
             >
-              <option value="" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">Sélectionner une catégorie</option>
+              <option value="">Sélectionner une catégorie</option>
               {categories.map((category) => (
-                <option key={category.id} value={category.id} className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">
+                <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
               ))}
@@ -1042,7 +1166,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="edit-time" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Heure *</label>
+              <label htmlFor="edit-time" className="admin-static-label">Heure *</label>
               <input
                 type="text"
                 id="edit-time"
@@ -1050,20 +1174,20 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                 value={formData.time}
                 onChange={handleInputChange}
                 placeholder="10:30 ou 10:30-12:00"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:border-gray-600"
+                className="admin-input"
                 required
                 aria-label="Heure du programme"
               />
             </div>
             <div>
-              <label htmlFor="edit-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date *</label>
+              <label htmlFor="edit-date" className="admin-static-label">Date *</label>
               <input
                 type="date"
                 id="edit-date"
                 name="date"
                 value={formData.date}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                className="admin-input"
                 required
                 aria-label="Date du programme"
               />
@@ -1071,7 +1195,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
           </div>
           
           <div>
-            <label htmlFor="edit-duration" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Durée</label>
+            <label htmlFor="edit-duration" className="admin-static-label">Durée</label>
             <input
               type="text"
               id="edit-duration"
@@ -1079,19 +1203,19 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
               value={formData.duration}
               onChange={handleInputChange}
               placeholder="1h30m"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:border-gray-600"
+              className="admin-input"
               aria-label="Durée du programme"
             />
           </div>
           
           <div>
-            <label htmlFor="edit-status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Statut</label>
+            <label htmlFor="edit-status" className="admin-static-label">Statut</label>
             <select
               id="edit-status"
               name="status"
               value={formData.status}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="admin-select"
               aria-label="Statut de la vidéo"
             >
               {statusOptions.map(option => (
@@ -1108,10 +1232,10 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                 type="checkbox"
                 checked={formData.is_live}
                 onChange={handleInputChange}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 aria-label="Diffusion en direct"
               />
-              <label htmlFor="edit_is_live" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              <label htmlFor="edit_is_live" className="ml-2 block text-sm text-white">
                 En direct
               </label>
             </div>
@@ -1122,10 +1246,10 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
                 type="checkbox"
                 checked={formData.is_featured}
                 onChange={handleInputChange}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 aria-label="Vidéo à l'antenne"
               />
-              <label htmlFor="edit_is_featured" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              <label htmlFor="edit_is_featured" className="ml-2 block text-sm text-white">
                 À l'antenne
               </label>
             </div>
@@ -1136,7 +1260,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
       {/* File Upload Section */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="edit-image-upload" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Image (optionnel)</label>
+          <label htmlFor="edit-image-upload" className="admin-static-label">Image (optionnel)</label>
           <div className="flex items-center">
             <input
               type="file"
@@ -1147,19 +1271,19 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
             />
             <label
               htmlFor="edit-image-upload"
-              className="cursor-pointer px-4 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="admin-file-btn"
               aria-label="Choisir une nouvelle image"
             >
               Choisir une image
             </label>
-            <span className="ml-3 text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
+            <span className="ml-3 text-sm admin-muted truncate max-w-[200px]">
               {imageFile ? imageFile.name : 'Conserver l\'image actuelle'}
             </span>
           </div>
         </div>
         
         <div>
-          <label htmlFor="edit-video-upload" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vidéo (optionnel)</label>
+          <label htmlFor="edit-video-upload" className="admin-static-label">Vidéo (optionnel)</label>
           <div className="flex items-center">
             <input
               type="file"
@@ -1170,12 +1294,12 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
             />
             <label
               htmlFor="edit-video-upload"
-              className="cursor-pointer px-4 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="admin-file-btn"
               aria-label="Choisir une nouvelle vidéo"
             >
               Choisir une vidéo
             </label>
-            <span className="ml-3 text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
+            <span className="ml-3 text-sm admin-muted truncate max-w-[200px]">
               {videoFile ? videoFile.name : 'Conserver la vidéo actuelle'}
             </span>
           </div>
@@ -1185,11 +1309,11 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
   </div>
   
   {/* Footer - Fixed at bottom */}
-  <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 rounded-b-lg flex justify-end space-x-4 mt-auto">
+  <div className="admin-modal-footer mt-auto">
     <button
       type="button"
       onClick={() => setIsEditModalOpen(false)}
-      className="px-4 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      className="admin-btn-ghost"
       aria-label="Annuler la modification"
     >
       Annuler
@@ -1198,7 +1322,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
       type="submit"
       form="editForm"
       disabled={isUploading}
-      className="px-6 py-2 border border-transparent rounded-md bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+      className="admin-btn-primary"
       aria-label="Mettre à jour la vidéo"
     >
       {isUploading ? (
@@ -1221,13 +1345,13 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
       {/* Delete Confirmation Modal - Simplified */}
       {isDeleteModalOpen && selectedVideo && (
   <div className="fixed inset-0 bg-black/40 backdrop-blur-md backdrop-saturate-150 flex items-center justify-center z-50 p-4">
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md overflow-hidden">
+    <div className="admin-modal w-full max-w-md overflow-hidden">
       {/* Header */}
-      <div className="bg-red-600 dark:bg-red-700 text-white px-6 py-4 flex justify-between items-center">
-        <h3 className="text-xl font-medium">Confirmer la suppression</h3>
+      <div className="admin-modal-header">
+        <h3 className="text-lg font-semibold">Confirmer la suppression</h3>
         <button 
           onClick={() => setIsDeleteModalOpen(false)} 
-          className="text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="admin-btn-ghost"
           aria-label="Fermer la fenêtre de suppression"
         >
           <X className="w-6 h-6" />
@@ -1235,33 +1359,33 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
       </div>
       
       {/* Content */}
-      <div className="p-6">
-        <div className="flex items-center justify-center mb-6 text-red-500 dark:text-red-400">
+      <div className="admin-modal-body">
+        <div className="flex items-center justify-center mb-6 text-red-300">
           <AlertTriangle className="w-16 h-16" />
         </div>
-        <p className="text-center text-lg font-medium text-gray-900 dark:text-white mb-2">
+        <p className="text-center text-lg font-medium text-white mb-2">
           Êtes-vous sûr de vouloir supprimer cette vidéo ?
         </p>
-        <p className="text-center text-gray-600 dark:text-gray-300 mb-4">
+        <p className="text-center admin-muted mb-4">
           <strong>{selectedVideo.title}</strong>
         </p>
-        <p className="text-center text-gray-500 dark:text-gray-400 text-sm mb-6">
+        <p className="text-center admin-muted text-sm mb-6">
           Cette action est irréversible et supprimera définitivement la vidéo.
         </p>
       </div>
       
       {/* Footer */}
-      <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-end space-x-4">
+      <div className="admin-modal-footer">
         <button
           onClick={() => setIsDeleteModalOpen(false)}
-          className="px-4 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="admin-btn-ghost"
           aria-label="Annuler la suppression"
         >
           Annuler
         </button>
         <button
           onClick={handleDeleteVideo}
-          className="px-4 py-2 border border-transparent rounded-md bg-red-600 text-sm font-medium text-white hover:bg-red-700 dark:hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex items-center"
+          className="admin-btn-danger"
           aria-label="Supprimer la vidéo"
         >
           <Trash2 className="-ml-1 mr-2 h-5 w-5" />
@@ -1271,7 +1395,7 @@ const Videos = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
     </div>
   </div>
 )}
-    </>
+    </div>
   );
 };
 
