@@ -18,7 +18,7 @@
 # )
 
 # # Setup upload directories
-# UPLOAD_BASE = Path("static/uploads")
+# UPLOAD_BASE = Path("uploads")
 # UPLOAD_BASE.mkdir(exist_ok=True)
 # IMAGE_DIR = UPLOAD_BASE / "images"
 # VIDEO_DIR = UPLOAD_BASE / "videos"
@@ -320,7 +320,7 @@ router = APIRouter(
 )
 
 # Setup upload directories
-UPLOAD_BASE = Path("static/uploads")
+UPLOAD_BASE = Path("uploads")
 UPLOAD_BASE.mkdir(exist_ok=True)
 IMAGE_DIR = UPLOAD_BASE / "images"
 VIDEO_DIR = UPLOAD_BASE / "videos"
@@ -821,7 +821,7 @@ def delete_article(id: int, db: Session = Depends(get_db), current_user: UserRes
 # )
 
 # # Setup upload directories
-# UPLOAD_BASE = Path("static/uploads")
+# UPLOAD_BASE = Path("uploads")
 # UPLOAD_BASE.mkdir(exist_ok=True)
 # IMAGE_DIR = UPLOAD_BASE / "images"
 # VIDEO_DIR = UPLOAD_BASE / "videos"

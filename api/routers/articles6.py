@@ -17,7 +17,7 @@ router = APIRouter(
     tags=["Arts Traditions Articles"]
 )
 
-UPLOAD_BASE = Path("static/uploads")
+UPLOAD_BASE = Path("uploads")
 UPLOAD_BASE.mkdir(exist_ok=True)
 IMAGE_DIR = UPLOAD_BASE / "images"
 IMAGE_DIR.mkdir(exist_ok=True)

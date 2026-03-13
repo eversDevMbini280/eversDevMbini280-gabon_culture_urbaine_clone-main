@@ -22,7 +22,7 @@
 #     tags=["articles"],
 # )
 
-# UPLOAD_BASE = Path("static/uploads")
+# UPLOAD_BASE = Path("uploads")
 # UPLOAD_BASE.mkdir(exist_ok=True)
 # IMAGE_DIR = UPLOAD_BASE / "images"
 # VIDEO_DIR = UPLOAD_BASE / "videos"
@@ -803,7 +803,7 @@
 #     tags=["articles"],
 # )
 
-# UPLOAD_BASE = Path("static/uploads")
+# UPLOAD_BASE = Path("uploads")
 # UPLOAD_BASE.mkdir(exist_ok=True)
 # IMAGE_DIR = UPLOAD_BASE / "images"
 # VIDEO_DIR = UPLOAD_BASE / "videos"
@@ -1563,7 +1563,7 @@ router = APIRouter(
     tags=["articles"],
 )
 
-UPLOAD_BASE = Path("static/uploads")
+UPLOAD_BASE = Path("uploads")
 UPLOAD_BASE.mkdir(exist_ok=True)
 IMAGE_DIR = UPLOAD_BASE / "images"
 VIDEO_DIR = UPLOAD_BASE / "videos"

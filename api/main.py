@@ -189,7 +189,7 @@ os.makedirs("uploads/videos", exist_ok=True)
 
 # Mount static files and uploads for serving
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 
 # Include routers
 app.include_router(articles.router)
