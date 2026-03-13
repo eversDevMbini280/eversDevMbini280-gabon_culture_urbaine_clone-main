@@ -25,7 +25,17 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'gabon-culture-urbaine-1.onrender.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'gaboncultureurbaine.up.railway.app',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'gabon-culture-urbaine-api-production.up.railway.app',
         pathname: '/**',
       },
     ],
