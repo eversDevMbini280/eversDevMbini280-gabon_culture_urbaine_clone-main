@@ -9,9 +9,13 @@ const nextConfig = {
     root: __dirname,
   },
   images: {
-    // Avoid image optimizer hitting localhost in dev (private IP block).
     unoptimized: process.env.NODE_ENV === 'development',
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',  // ✅ Ajouté
+        pathname: '/**',
+      },
       {
         protocol: 'http',
         hostname: 'localhost',
