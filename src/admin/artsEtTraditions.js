@@ -562,13 +562,25 @@ const Articles6 = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localho
             <p className="at-section-label">Contenu *</p>
             <div className="at-editor-wrap">
               <Editor
-                apiKey="flup6mpg77mo3dunmn55uysoe36a3no8ykt61q105qolika5"
+                apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'kace4qkcs3zmic3xrgg5vyqjbh8r3w9q772ybtcyghuh52yn'}
                 value={formData.content}
                 onEditorChange={content => setFormData(p => ({ ...p, content }))}
                 init={{
                   height: 400, menubar: true,
-                  plugins: ['anchor','autolink','charmap','codesample','emoticons','image','link','lists','media','searchreplace','table','visualblocks','wordcount'],
-                  toolbar: 'undo redo | blocks | bold italic underline strikethrough | link image media table | numlist bullist indent outdent | emoticons charmap | removeformat',
+                  plugins: [
+                    'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
+                    'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable',
+                    'advcode', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography',
+                    'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf',
+                  ],
+                  toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+                  tinycomments_mode: 'embedded',
+                  tinycomments_author: 'Author name',
+                  mergetags_list: [
+                    { value: 'First.Name', title: 'First Name' },
+                    { value: 'Email', title: 'Email' },
+                  ],
+                  ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
                   file_picker_callback: filePickerCallback, file_picker_types: 'image media',
                   content_style: 'body { font-size: 14px; }',
                   skin: 'oxide-dark', content_css: 'dark',

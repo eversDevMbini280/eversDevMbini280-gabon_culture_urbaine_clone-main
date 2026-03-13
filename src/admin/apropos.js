@@ -527,8 +527,20 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
   const editorInit = {
     height: 250,
     menubar: false,
-    plugins: ['image', 'link', 'lists', 'media', 'table'],
-    toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image | removeformat',
+    plugins: [
+      'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
+      'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable',
+      'advcode', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography',
+      'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf',
+    ],
+    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+    tinycomments_mode: 'embedded',
+    tinycomments_author: 'Author name',
+    mergetags_list: [
+      { value: 'First.Name', title: 'First Name' },
+      { value: 'Email', title: 'Email' },
+    ],
+    ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
     file_picker_types: 'image',
     content_style: `
       body { 
@@ -645,7 +657,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
                 <div className="md:col-span-2">
                   <label htmlFor="history_text1" className="block text-sm font-medium text-gray-700 mb-1">Texte de l'Histoire 1</label>
                   <Editor
-                    apiKey="flup6mpg77mo3dunmn55uysoe36a3no8ykt61q105qolika5"
+                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'kace4qkcs3zmic3xrgg5vyqjbh8r3w9q772ybtcyghuh52yn'}
                     value={formData.aboutContent.history_text1}
                     onEditorChange={(content) => handleEditorChange(content, 'aboutContent', 'history_text1')}
                     init={{
@@ -657,7 +669,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
                 <div className="md:col-span-2">
                   <label htmlFor="history_text2" className="block text-sm font-medium text-gray-700 mb-1">Texte de l'Histoire 2</label>
                   <Editor
-                    apiKey="flup6mpg77mo3dunmn55uysoe36a3no8ykt61q105qolika5"
+                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'kace4qkcs3zmic3xrgg5vyqjbh8r3w9q772ybtcyghuh52yn'}
                     value={formData.aboutContent.history_text2}
                     onEditorChange={(content) => handleEditorChange(content, 'aboutContent', 'history_text2')}
                     init={{
@@ -677,7 +689,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
                 <div className="md:col-span-2">
                   <label htmlFor="mission_text" className="block text-sm font-medium text-gray-700 mb-1">Texte de la Mission</label>
                   <Editor
-                    apiKey="flup6mpg77mo3dunmn55uysoe36a3no8ykt61q105qolika5"
+                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'kace4qkcs3zmic3xrgg5vyqjbh8r3w9q772ybtcyghuh52yn'}
                     value={formData.aboutContent.mission_text}
                     onEditorChange={(content) => handleEditorChange(content, 'aboutContent', 'mission_text')}
                     init={{
@@ -693,7 +705,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
                 <div className="md:col-span-2">
                   <label htmlFor="vision_text" className="block text-sm font-medium text-gray-700 mb-1">Texte de la Vision</label>
                   <Editor
-                    apiKey="flup6mpg77mo3dunmn55uysoe36a3no8ykt61q105qolika5"
+                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'kace4qkcs3zmic3xrgg5vyqjbh8r3w9q772ybtcyghuh52yn'}
                     value={formData.aboutContent.vision_text}
                     onEditorChange={(content) => handleEditorChange(content, 'aboutContent', 'vision_text')}
                     init={{
@@ -778,7 +790,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
                 <div className="md:col-span-2">
                   <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
                   <Editor
-                    apiKey="flup6mpg77mo3dunmn55uysoe36a3no8ykt61q105qolika5"
+                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'kace4qkcs3zmic3xrgg5vyqjbh8r3w9q772ybtcyghuh52yn'}
                     value={formData.teamMember.bio}
                     onEditorChange={(content) => handleEditorChange(content, 'teamMember', 'bio')}
                     init={{
@@ -878,7 +890,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
                 <div className="md:col-span-2">
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                   <Editor
-                    apiKey="flup6mpg77mo3dunmn55uysoe36a3no8ykt61q105qolika5"
+                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'kace4qkcs3zmic3xrgg5vyqjbh8r3w9q772ybtcyghuh52yn'}
                     value={formData.milestone.description}
                     onEditorChange={(content) => handleEditorChange(content, 'milestone', 'description')}
                     init={{
@@ -1062,7 +1074,7 @@ const AProposDashboard = ({ apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://
                 <div className="md:col-span-2">
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                   <Editor
-                    apiKey="flup6mpg77mo3dunmn55uysoe36a3no8ykt61q105qolika5"
+                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'kace4qkcs3zmic3xrgg5vyqjbh8r3w9q772ybtcyghuh52yn'}
                     value={formData.value.description}
                     onEditorChange={(content) => handleEditorChange(content, 'value', 'description')}
                     init={{
